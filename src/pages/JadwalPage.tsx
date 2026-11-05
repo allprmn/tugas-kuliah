@@ -74,7 +74,7 @@ export default function JadwalPage() {
             
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
               <div>
-                <h1 className="text-3xl font-bold text-on-surface tracking-tight">Jadwal & Kalender (Versi Main)</h1>
+                <h1 className="text-3xl font-bold text-on-surface tracking-tight">Jadwal & Kalender (Versi Fitur)</h1>
                 <p className="text-on-surface-variant mt-1">Pantau jadwal kuliah dan tenggat waktu tugasmu.</p>
               </div>
               
