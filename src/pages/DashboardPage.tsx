@@ -1,137 +1,192 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
-import { initialTasks } from '../data/mockData';
+import TaskModal from '../components/TaskModal';
+import { supabase } from '../lib/supabaseClient';
+import type { Task } from '../types';
 
 export default function DashboardPage() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
+    // State Modal & Edit
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+    const fetchTasks = async () => {
+        setIsLoading(true);
+        const { data, error } = await supabase
+            .from('tasks')
+            .select('*')
+            .eq('is_completed', false)
+            .order('deadline', { ascending: true });
+
+        if (!error && data) {
+            setTasks(data);
+            window.dispatchEvent(new Event('tasksUpdated'));
+        }
+        setIsLoading(false);
     };
+
+    useEffect(() => {
+        fetchTasks();
+    }, []);
+
+    const handleCompleteTask = async (id: string) => {
+        const { error } = await supabase.from('tasks').update({ is_completed: true }).eq('id', id);
+        if (!error) fetchTasks();
+    };
+
+    const handleOpenEdit = (task: Task) => {
+        setEditingTask(task);
+        setIsModalOpen(true);
+    };
+
+    const handleOpenAdd = () => {
+        setEditingTask(null);
+        setIsModalOpen(true);
+    };
+
+    // Fungsi untuk menghapus tugas
+    const handleDeleteTask = async (id: string) => {
+        if (window.confirm('Yakin ingin menghapus tugas ini?')) {
+            const { error } = await supabase.from('tasks').delete().eq('id', id);
+            if (!error) {
+                fetchTasks();
+            } else {
+                alert('Gagal menghapus tugas');
+            }
+        }
+    };
+
+    const getDaysRemaining = (deadline: string) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const deadlineDate = new Date(deadline);
+        deadlineDate.setHours(0, 0, 0, 0);
+        const diffTime = deadlineDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return { text: 'Hari Ini', color: 'text-error' };
+        if (diffDays === 1) return { text: 'Besok', color: 'text-error' };
+        if (diffDays > 1) return { text: `H-${diffDays}`, color: 'text-secondary' };
+        return { text: `Terlambat`, color: 'text-error' };
+    };
+
     return (
-        <div className="bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen overflow-x-hidden">
-      
-      {/* Kirim state ke Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} />
-      
-      {/* Wrapper padding kiri akan berubah tergantung state */}
-      <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
-        
-        {/* Kirim state dan fungsi toggle ke Header */}
-        <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={toggleSidebar} />
+        <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
+            <Sidebar isOpen={isSidebarOpen} />
 
-                {/* Area Konten Utama */}
-                <main className="relative w-full pt-16 bg-background min-h-screen px-gutter">
-                    <div className="flex flex-col w-full pb-16 pt-6">
+            <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
+                <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-                        {/* Header Greeting */}
-                        <div className="relative w-full mb-space-lg">
-                            <div className="absolute -top-10 left-1/4 w-96 h-32 bg-primary-container/10 rounded-full blur-3xl pointer-events-none"></div>
-                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md relative z-10">
-                                <div>
-                                    <div className="flex items-center gap-space-xs mb-1.5">
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-secondary text-label-sm font-label-sm">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
-                                            Semester Ganjil 2024/2025
-                                        </span>
-                                        <span className="text-outline text-label-sm font-label-sm">• Minggu ke-9</span>
-                                    </div>
-                                    <h1 className="text-headline-lg font-headline-lg text-on-surface tracking-tight">
-                                        Halo Nadia! Kelola tugas kuliahmu dengan terorganisir.
-                                    </h1>
-                                    <p className="text-on-surface-variant text-body-md font-body-md mt-1">
-                                        Pantau prioritas, catat instruksi dosen, dan selesaikan tugas sebelum tenggat waktu tiba.
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-space-sm flex-shrink-0">
-                                    <button className="inline-flex items-center gap-2 px-space-md py-2.5 rounded-xl bg-primary-container text-on-primary-container font-label-lg text-label-lg shadow-lg shadow-primary-container/25 hover:bg-inverse-primary hover:shadow-primary-container/40 active:scale-95 transition-all">
-                                        <span className="material-symbols-outlined text-[20px]">add_task</span>
-                                        <span>Tambah Tugas Baru</span>
-                                    </button>
-                                </div>
+                <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
+                    <div className="flex flex-col w-full pb-space-xl pt-6">
+
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
+                            <div>
+                                <h1 className="text-3xl font-bold text-on-surface tracking-tight">Daftar Tugas Aktif</h1>
+                                <p className="text-on-surface-variant mt-1">Selesaikan tugasmu sebelum tenggat waktu tiba.</p>
                             </div>
+                            <button
+                                onClick={handleOpenAdd}
+                                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-on-primary font-semibold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">add_task</span>
+                                Tambah Tugas
+                            </button>
                         </div>
 
-                        {/* Statistik Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md mb-space-lg">
-                            {/* Total Tugas */}
-                            <div className="relative overflow-hidden p-space-md rounded-2xl bg-surface-container-low/90 backdrop-blur-sm shadow-md hover:shadow-primary-container/10 hover:-translate-y-0.5 transition-all group">
-                                <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-secondary/10 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Total Tugas</span>
-                                    <div className="w-9 h-9 rounded-xl bg-surface-container-high flex items-center justify-center text-secondary">
-                                        <span className="material-symbols-outlined text-[20px]">layers</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-display font-display text-on-surface leading-none">{initialTasks.length}</span>
-                                    <span className="text-body-sm font-body-sm text-outline">tugas terdaftar</span>
-                                </div>
+                        {isLoading ? (
+                            <div className="text-center py-20 text-on-surface-variant">Memuat data...</div>
+                        ) : tasks.length === 0 ? (
+                            <div className="text-center py-20 bg-surface-container-low rounded-2xl border border-outline-variant/10">
+                                <span className="material-symbols-outlined text-5xl text-tertiary mb-3">task_alt</span>
+                                <h3 className="text-lg font-semibold text-on-surface">Semua tugas selesai!</h3>
+                                <p className="text-on-surface-variant text-sm mt-1">Tidak ada tugas aktif saat ini.</p>
                             </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {tasks.map((task) => {
+                                    const remaining = getDaysRemaining(task.deadline);
 
-                            {/* Belum Selesai */}
-                            <div className="relative overflow-hidden p-space-md rounded-2xl bg-surface-container-low/90 backdrop-blur-sm shadow-md hover:shadow-secondary-container/10 hover:-translate-y-0.5 transition-all group">
-                                <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-secondary-container/15 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Belum Selesai</span>
-                                    <div className="w-9 h-9 rounded-xl bg-surface-container-high flex items-center justify-center text-secondary-fixed-dim">
-                                        <span className="material-symbols-outlined text-[20px]">pending_actions</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-display font-display text-secondary-fixed leading-none">
-                                        {initialTasks.filter(t => !t.completed).length}
-                                    </span>
-                                    <span className="text-body-sm font-body-sm text-outline">tugas mendesak</span>
-                                </div>
-                            </div>
+                                    return (
+                                        <div key={task.id} className="relative flex flex-col justify-between p-6 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all duration-300 border border-outline-variant/10 shadow-sm group">
+                                            <div>
+                                                <div className="flex items-start justify-between mb-4">
+                                                    <div className="flex gap-2">
+                                                        <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${task.priority === 'Tinggi' ? 'bg-error-container/30 text-error' :
+                                                            task.priority === 'Sedang' ? 'bg-secondary-container/20 text-secondary' :
+                                                                'bg-surface-container-high text-outline'
+                                                            }`}>
+                                                            {task.priority}
+                                                        </span>
+                                                        <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-surface-container-high text-on-surface">
+                                                            {task.course_code}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        {/* Tombol Edit */}
+                                                        <button
+                                                            onClick={() => handleOpenEdit(task)}
+                                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container-high hover:text-primary transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[18px]">edit</span>
+                                                        </button>
 
-                            {/* Selesai */}
-                            <div className="relative overflow-hidden p-space-md rounded-2xl bg-surface-container-low/90 backdrop-blur-sm shadow-md hover:shadow-tertiary/10 hover:-translate-y-0.5 transition-all group">
-                                <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-tertiary/15 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Selesai</span>
-                                    <div className="w-9 h-9 rounded-xl bg-surface-container-high flex items-center justify-center text-tertiary">
-                                        <span className="material-symbols-outlined text-[20px]">task_alt</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-display font-display text-tertiary leading-none">
-                                        {initialTasks.filter(t => t.completed).length}
-                                    </span>
-                                    <span className="text-body-sm font-body-sm text-outline">tugas tuntas</span>
-                                </div>
-                            </div>
+                                                        {/* Tombol Hapus (BARU) */}
+                                                        <button
+                                                            onClick={() => handleDeleteTask(task.id)}
+                                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-error-container/20 hover:text-error transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
 
-                            {/* Mendekati Deadline */}
-                            <div className="relative overflow-hidden p-space-md rounded-2xl bg-surface-container-low/90 backdrop-blur-sm shadow-md hover:shadow-error/15 hover:-translate-y-0.5 transition-all group">
-                                <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-error/15 rounded-full blur-xl group-hover:scale-125 transition-transform"></div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Mendekati Deadline</span>
-                                    <div className="w-9 h-9 rounded-xl bg-surface-container-high flex items-center justify-center text-error">
-                                        <span className="material-symbols-outlined text-[20px]">alarm</span>
-                                    </div>
-                                </div>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-display font-display text-error leading-none">
-                                        {initialTasks.filter(t => !t.completed && t.isUrgent).length}
-                                    </span>
-                                    <span className="text-body-sm font-body-sm text-outline">&lt; 48 jam lagi</span>
-                                </div>
-                            </div>
-                        </div>
+                                                <h3 className="text-xl font-bold text-on-surface leading-tight mb-1">{task.title}</h3>
+                                                <p className="text-sm text-on-surface-variant mb-4">{task.course}</p>
 
-                        {/* Area Daftar Tugas (Sementara statis dulu, nanti kita buat dinamis) */}
-                        <div className="w-full flex flex-col gap-3">
-                            <div className="p-4 bg-surface-container-low rounded-xl text-center text-on-surface-variant">
-                                Daftar tugas akan dirender di sini (Langkah selanjutnya).
+                                                {task.description && (
+                                                    <p className="text-sm text-outline line-clamp-2 mb-4">{task.description}</p>
+                                                )}
+                                            </div>
+
+                                            <div className="mt-4 pt-4 border-t border-outline-variant/20 flex items-center justify-between">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-outline">Tenggat</span>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        <span className="material-symbols-outlined text-[16px] text-outline">event</span>
+                                                        <span className={`text-sm font-bold ${remaining.color}`}>{remaining.text}</span>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => handleCompleteTask(task.id)}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container/10 text-primary hover:bg-primary hover:text-on-primary font-semibold text-sm transition-all"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                                                    Selesai
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
-                        </div>
+                        )}
 
                     </div>
                 </main>
             </div>
+
+            {/* Kirim data editingTask ke Modal */}
+            <TaskModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onTaskAdded={fetchTasks}
+                taskToEdit={editingTask}
+            />
         </div>
     );
 }

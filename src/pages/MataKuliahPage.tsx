@@ -1,196 +1,270 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
-import CourseCard from '../components/cards/CourseCard';
 import CourseModal from '../components/CourseModal';
-import { initialCourses } from '../data/courseData';
+import { supabase } from '../lib/supabaseClient';
+import type { Course } from '../types';
+
+// Interface baru untuk menampung data mata kuliah + hasil hitung tugas
+interface CourseWithStats extends Course {
+  totalTasks: number;
+  completedTasks: number;
+  calculatedProgress: number;
+  hasTasks: boolean;
+}
 
 export default function MataKuliahPage() {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeFilter, setActiveFilter] = useState('all');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [courses, setCourses] = useState<CourseWithStats[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Ubah initialCourses menjadi state
-    const [courses, setCourses] = useState<Course[]>(initialCourses);
-    const [isModalOpen, setIsModalOpen] = useState(false); // State untuk Modal
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'has_tasks' | 'no_tasks'>('all');
 
-    // Fungsi untuk menangani data dari Modal
-    const handleSaveCourse = (newCourse: Course) => {
-        setCourses([...courses, newCourse]); // Tambahkan ke list
-        setIsModalOpen(false); // Tutup modal
-    };
+  // Fetch Data (Courses & Tasks)
+  const fetchData = async () => {
+    setIsLoading(true);
+    
+    // Ambil data dari dua tabel secara bersamaan
+    const [coursesRes, tasksRes] = await Promise.all([
+      supabase.from('courses').select('*').order('created_at', { ascending: true }),
+      supabase.from('tasks').select('*')
+    ]);
 
-    // Logika Filter
-    const countAll = courses.length;
-    const countUncompleted = courses.filter(c => c.progress < 100).length;
-    const countCompleted = courses.filter(c => c.progress === 100).length;
+    if (coursesRes.data && tasksRes.data) {
+      const allTasks = tasksRes.data;
+      
+      // Gabungkan data courses dengan kalkulasi dari tasks
+      const coursesWithStats = coursesRes.data.map((course) => {
+        // Cari tugas yang kode mata kuliahnya cocok
+        const courseTasks = allTasks.filter(
+          (t) => t.course_code === course.code || t.course === course.name
+        );
+        
+        const totalTasks = courseTasks.length;
+        const completedTasks = courseTasks.filter((t) => t.is_completed).length;
+        
+        // Hitung persentase (hindari pembagian dengan nol)
+        const calculatedProgress = totalTasks > 0 
+          ? Math.round((completedTasks / totalTasks) * 100) 
+          : 0;
 
-    // Logika Filter
-    const filteredCourses = courses.filter(course => {
-        const matchesSearch = course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            course.lecturer.toLowerCase().includes(searchQuery.toLowerCase());
+        return {
+          ...course,
+          totalTasks,
+          completedTasks,
+          calculatedProgress,
+          hasTasks: totalTasks > 0,
+        };
+      });
 
-        let matchesTab = true;
-        if (activeFilter === 'uncompleted') matchesTab = course.progress < 100;
-        if (activeFilter === 'completed') matchesTab = course.progress === 100;
+      setCourses(coursesWithStats);
+    }
+    setIsLoading(false);
+  };
 
-        return matchesSearch && matchesTab;
-    });
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-    return (
-        <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
-            <Sidebar isOpen={isSidebarOpen} />
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Yakin ingin menghapus mata kuliah ini?')) {
+      const { error } = await supabase.from('courses').delete().eq('id', id);
+      if (!error) fetchData();
+    }
+  };
 
-            <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
-                <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+  // --- LOGIKA STATISTIK ---
+  const totalKelas = courses.length;
+  const totalSKS = courses.reduce((sum, course) => sum + course.sks, 0);
+  const totalDosen = new Set(courses.map(c => c.lecturer)).size;
+  
+  // Rata-rata progress dihitung dari calculatedProgress
+  const rataRataProgress = totalKelas > 0 
+    ? Math.round(courses.reduce((sum, course) => sum + course.calculatedProgress, 0) / totalKelas) 
+    : 0;
 
-                <main className="relative w-full pt-16 bg-background min-h-screen px-gutter">
-                    <div className="flex flex-col w-full pb-space-xl pt-6">
+  // --- LOGIKA FILTER & SEARCH ---
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = 
+      course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.lecturer.toLowerCase().includes(searchQuery.toLowerCase());
 
-                        {/* Header Title */}
-                        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg mb-space-xl">
-                            <div className="max-w-2xl">
-                                <div className="flex items-center gap-space-xs mb-space-xs">
-                                    <span className="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container font-label-sm text-label-sm text-secondary">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
-                                        Semester Ganjil 2024/2025
-                                    </span>
-                                    <span className="font-label-sm text-label-sm text-outline">•</span>
-                                    <span className="font-label-sm text-label-sm text-on-surface-variant font-medium">Program Studi Teknik Informatika</span>
-                                </div>
-                                <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight font-semibold">
-                                    Daftar Mata Kuliah Semester 5
-                                </h1>
-                                <p className="font-body-md text-body-md text-on-surface-variant mt-1 leading-relaxed">
-                                    Kelola mata kuliah, dosen pengampu, bobot SKS, ruang kelas, dan pantau progres tugas secara real-time.
-                                </p>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-space-sm">
-                                <button onClick={() => setIsModalOpen(true)} className="inline-flex items-center gap-2 px-space-md py-2.5 rounded-xl bg-primary-container hover:bg-blue-600 text-on-primary-container font-label-lg text-label-lg font-semibold shadow-md shadow-primary-container/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
-                                    <span className="material-symbols-outlined text-[20px]">add_circle</span>
-                                    <span>+ Tambah Mata Kuliah</span>
-                                </button>
-                            </div>
-                        </div>
+    let matchesTab = true;
+    if (activeTab === 'has_tasks') matchesTab = course.hasTasks; // Punya tugas
+    if (activeTab === 'no_tasks') matchesTab = !course.hasTasks; // 0 tugas
 
-                        {/* Stats */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-space-md mb-space-xl">
-                            <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex items-center gap-space-md">
-                                <div className="w-12 h-12 rounded-xl bg-primary-container/15 flex items-center justify-center text-primary shrink-0">
-                                    <span className="material-symbols-outlined text-[26px]">menu_book</span>
-                                </div>
-                                <div>
-                                    <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Total Mata Kuliah</span>
-                                    <div className="flex items-baseline gap-1.5 mt-0.5">
-                                        <span className="font-headline-md text-headline-md text-on-surface font-semibold">{initialCourses.length}</span>
-                                        <span className="font-label-sm text-label-sm text-outline">Kelas</span>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* Tambahkan 3 stat lainnya persis seperti desain HTML */}
-                            <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex items-center gap-space-md">
-                                <div className="w-12 h-12 rounded-xl bg-secondary-container/20 flex items-center justify-center text-secondary shrink-0">
-                                    <span className="material-symbols-outlined text-[26px]">credit_card</span>
-                                </div>
-                                <div>
-                                    <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Beban SKS</span>
-                                    <div className="flex items-baseline gap-1.5 mt-0.5">
-                                        <span className="font-headline-md text-headline-md text-on-surface font-semibold">20</span>
-                                        <span className="font-label-sm text-label-sm text-outline">SKS</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex items-center gap-space-md">
-                                <div className="w-12 h-12 rounded-xl bg-tertiary-container/30 flex items-center justify-center text-tertiary shrink-0">
-                                    <span className="material-symbols-outlined text-[26px]">task_alt</span>
-                                </div>
-                                <div>
-                                    <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Rata-rata Selesai</span>
-                                    <div className="flex items-baseline gap-1.5 mt-0.5">
-                                        <span className="font-headline-md text-headline-md text-tertiary font-semibold">88%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-space-md rounded-xl bg-surface-container-low shadow-sm flex items-center gap-space-md">
-                                <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface shrink-0">
-                                    <span className="material-symbols-outlined text-[26px]">record_voice_over</span>
-                                </div>
-                                <div>
-                                    <span className="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Dosen Pengampu</span>
-                                    <div className="flex items-baseline gap-1.5 mt-0.5">
-                                        <span className="font-headline-md text-headline-md text-on-surface font-semibold">6</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    return matchesSearch && matchesTab;
+  });
 
-                        {/* Search & Filters */}
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-space-md mb-space-lg">
-                            <div className="relative flex-1 max-w-md">
-                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
-                                <input
-                                    className="w-full h-11 pl-10 pr-space-md rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm text-body-sm focus:outline-none focus:bg-surface-container transition-all"
-                                    placeholder="Cari nama mata kuliah, kode, atau nama dosen..."
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-                            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-container-low overflow-x-auto">
-                                <button
-                                    onClick={() => setActiveFilter('all')}
-                                    className={`px-space-md py-1.5 rounded-lg text-label-sm transition-all whitespace-nowrap ${activeFilter === 'all' ? 'bg-primary-container text-on-primary-container font-semibold' : 'text-on-surface-variant hover:text-on-surface'}`}
-                                >
-                                    Semua ({countAll})
-                                </button>
-                                <button
-                                    onClick={() => setActiveFilter('uncompleted')}
-                                    className={`px-space-md py-1.5 rounded-lg text-label-sm transition-all whitespace-nowrap ${activeFilter === 'uncompleted' ? 'bg-primary-container text-on-primary-container font-semibold' : 'text-on-surface-variant hover:text-on-surface'}`}
-                                >
-                                    Ada Tugas ({countUncompleted})
-                                </button>
-                                <button
-                                    onClick={() => setActiveFilter('completed')}
-                                    className={`px-space-md py-1.5 rounded-lg text-label-sm transition-all whitespace-nowrap ${activeFilter === 'completed' ? 'bg-primary-container text-on-primary-container font-semibold' : 'text-on-surface-variant hover:text-on-surface'}`}
-                                >
-                                    Tidak Ada Tugas ({countCompleted})
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Grid Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
-                            {[...filteredCourses]
-                                .sort((a, b) => {
-                                    if (a.progress === 100 && b.progress !== 100) return 1;
-
-                                    if (a.progress !== 100 && b.progress === 100) return -1;
-
-                                    return b.progress - a.progress;
-                                })
-                                .map(course => (
-                                    <CourseCard key={course.id} course={course} />
-                                ))}
-                        </div>
-
-                        {/* Empty State jika tidak ada hasil */}
-                        {filteredCourses.length === 0 && (
-                            <div className="w-full text-center py-20 bg-surface-container-low rounded-2xl mt-4">
-                                <span className="material-symbols-outlined text-[48px] text-outline mb-4">search_off</span>
-                                <h3 className="text-headline-sm font-semibold text-on-surface">Mata Kuliah Tidak Ditemukan</h3>
-                                <p className="text-on-surface-variant mt-2">Coba gunakan kata kunci lain atau ubah filter.</p>
-                            </div>
-                        )}
-
-                    </div>
-                </main>
+  return (
+    <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
+      <Sidebar isOpen={isSidebarOpen} />
+      
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
+        <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        
+        <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
+          <div className="flex flex-col w-full pb-space-xl pt-6 max-w-7xl mx-auto">
+            
+            <div className="flex justify-end mb-4">
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-on-primary font-semibold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all text-sm"
+              >
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                Tambah Mata Kuliah
+              </button>
             </div>
-            <CourseModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSave={handleSaveCourse}
-            />
-        </div>
-    );
+
+            {/* 1. BAGIAN STATISTIK */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/10 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+                  <span className="material-symbols-outlined">menu_book</span>
+                </div>
+                <div>
+                  <p className="text-xs text-outline uppercase tracking-wider font-semibold">Kuliah</p>
+                  <p className="text-2xl font-bold text-white">{totalKelas} <span className="text-sm font-normal text-outline">Kelas</span></p>
+                </div>
+              </div>
+              <div className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/10 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+                  <span className="material-symbols-outlined">credit_card</span>
+                </div>
+                <div>
+                  <p className="text-xs text-outline uppercase tracking-wider font-semibold">Beban SKS</p>
+                  <p className="text-2xl font-bold text-white">{totalSKS} <span className="text-sm font-normal text-outline">SKS</span></p>
+                </div>
+              </div>
+              <div className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/10 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                  <span className="material-symbols-outlined">task_alt</span>
+                </div>
+                <div>
+                  <p className="text-xs text-outline uppercase tracking-wider font-semibold">Selesai</p>
+                  <p className="text-2xl font-bold text-emerald-400">{rataRataProgress}%</p>
+                </div>
+              </div>
+              <div className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/10 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface">
+                  <span className="material-symbols-outlined">record_voice_over</span>
+                </div>
+                <div>
+                  <p className="text-xs text-outline uppercase tracking-wider font-semibold">Dosen Pengampu</p>
+                  <p className="text-2xl font-bold text-white">{totalDosen}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. BAGIAN SEARCH & TAB FILTER */}
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 mb-6">
+              <div className="relative flex-1 max-w-lg">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+                <input 
+                  type="text"
+                  placeholder="Cari nama mata kuliah, kode, atau nama dosen..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-11 pl-10 pr-4 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline text-sm border border-outline-variant/10 focus:outline-none focus:border-primary/50 transition-all"
+                />
+              </div>
+              
+              <div className="flex bg-surface-container-low p-1 rounded-xl border border-outline-variant/10 overflow-x-auto">
+                <button 
+                  onClick={() => setActiveTab('all')}
+                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-white'}`}
+                >
+                  Semua ({courses.length})
+                </button>
+                <button 
+                  onClick={() => setActiveTab('has_tasks')}
+                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'has_tasks' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-white'}`}
+                >
+                  Ada Tugas ({courses.filter(c => c.hasTasks).length})
+                </button>
+                <button 
+                  onClick={() => setActiveTab('no_tasks')}
+                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'no_tasks' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-white'}`}
+                >
+                  Tidak Ada Tugas ({courses.filter(c => !c.hasTasks).length})
+                </button>
+              </div>
+            </div>
+
+            {/* 3. BAGIAN GRID CARD MATA KULIAH */}
+            {isLoading ? (
+              <div className="text-center py-20 text-on-surface-variant">Memuat data mata kuliah...</div>
+            ) : filteredCourses.length === 0 ? (
+              <div className="text-center py-20 bg-surface-container-low rounded-2xl border border-outline-variant/10">
+                <span className="material-symbols-outlined text-5xl text-outline mb-3">search_off</span>
+                <h3 className="text-lg font-semibold text-on-surface">Mata kuliah tidak ditemukan</h3>
+                <p className="text-on-surface-variant text-sm mt-1">Coba ubah kata kunci atau filter.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredCourses.map((course) => (
+                  <div key={course.id} className="relative bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm hover:border-primary/30 transition-all group flex flex-col h-full">
+                    
+                    <button 
+                      onClick={() => handleDelete(course.id)}
+                      className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-outline opacity-0 group-hover:opacity-100 hover:bg-error/10 hover:text-error transition-all z-10"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        Teknik Informatika
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Semester 2024I
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl font-bold text-white mb-2 leading-tight">
+                      {course.name}
+                    </h3>
+                    <p className="text-sm text-on-surface-variant mb-1">Kode: {course.code}</p>
+                    <p className="text-sm text-on-surface-variant mb-4">Kelas: {course.class_name}</p>
+
+                    <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+                      <span className="material-symbols-outlined text-[18px]">person</span>
+                      <span className="truncate">{course.lecturer}</span>
+                    </div>
+
+                    {/* Progress Bar Dinamis */}
+                    <div className="mt-auto pt-8">
+                      <div className="flex items-end justify-between mb-3">
+                        <span className="text-3xl font-bold text-white block">
+                          {course.calculatedProgress}%
+                        </span>
+                        <span className="text-xs text-outline mb-1">
+                          {course.hasTasks 
+                            ? `${course.completedTasks}/${course.totalTasks} Tugas` 
+                            : 'Belum ada tugas'}
+                        </span>
+                      </div>
+                      <div className="w-full bg-surface-container-highest h-2.5 rounded-full overflow-hidden">
+                        <div 
+                          className="bg-emerald-400 h-full rounded-full transition-all duration-500" 
+                          style={{ width: `${course.calculatedProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </div>
+        </main>
+      </div>
+
+      <CourseModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onCourseAdded={fetchData} />
+    </div>
+  );
 }

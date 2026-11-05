@@ -1,10 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { supabase } from '../../lib/supabaseClient';
 
 export default function Sidebar({ isOpen }: { isOpen: boolean }) {
   const location = useLocation();
+  const [activeTaskCount, setActiveTaskCount] = useState(0);
 
-  // Helper class untuk menu aktif
+  // Fungsi untuk mengambil jumlah tugas aktif dari database
+  const fetchTaskCount = async () => {
+    const { count, error } = await supabase
+      .from('tasks')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_completed', false);
+    
+    if (!error && count !== null) {
+      setActiveTaskCount(count);
+    }
+  };
+
+  useEffect(() => {
+    fetchTaskCount();
+
+    // Mendengarkan sinyal "tasksUpdated" dari halaman lain
+    window.addEventListener('tasksUpdated', fetchTaskCount);
+    
+    // Bersihkan listener saat komponen di-unmount
+    return () => window.removeEventListener('tasksUpdated', fetchTaskCount);
+  }, []);
+
   const getLinkClass = (path: string) => {
     const isActive = location.pathname === path;
     return isActive
@@ -12,26 +35,19 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
       : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface";
   };
 
-  // Menu items disesuaikan dengan aplikasimu
   const menuItems = [
-    { path: '/', label: 'Semua Tugas', icon: 'checklist', badge: 2 },
+    { path: '/', label: 'Semua Tugas', icon: 'checklist', badge: activeTaskCount },
     { path: '/mata-kuliah', label: 'Mata Kuliah', icon: 'menu_book' },
     { path: '/jadwal', label: 'Jadwal & Kalender', icon: 'calendar_month' },
     { path: '/arsip', label: 'Arsip Selesai', icon: 'inventory_2' },
-    { path: '/statistik', label: 'Statistik', icon: 'insights' },
   ];
 
   return (
-    // Wrapper Sidebar
     <aside
       className={`
         fixed left-0 top-0 h-full w-64 bg-surface-container-low shadow-[0_1px_8px_rgba(0,0,0,0.25)] z-50 flex flex-col justify-between 
         transition-all duration-300 ease-in-out 
-        
-        /* MOBILE BEHAVIOR (Sesuai state isOpen) */
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-
-        /* DESKTOP BEHAVIOR (Floating, Hover Expand) */
         md:left-4 md:top-4 md:bottom-4 md:h-auto md:translate-x-0 
         md:w-[80px] md:hover:w-[260px] 
         md:rounded-3xl group
@@ -47,7 +63,6 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
               alt="Profile" 
               className="w-10 h-10 rounded-full shrink-0 object-cover ring-2 ring-primary/20"
             />
-            {/* Teks hanya muncul saat sidebar dilebarkan (desktop) atau di mobile */}
             <div className="flex flex-col whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
               <span className="font-label-md text-label-md text-on-surface font-semibold">Nadia Larasati</span>
               <span className="font-label-sm text-label-sm text-outline">Mahasiswa</span>
@@ -79,7 +94,9 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
               <span className="flex-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                 {item.label}
               </span>
-              {item.badge && (
+              
+              {/* Badge Angka Dinamis */}
+              {item.badge !== undefined && item.badge > 0 && (
                 <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-bold opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                   {item.badge}
                 </span>
