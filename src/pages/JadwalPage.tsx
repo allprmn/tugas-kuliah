@@ -1,0 +1,196 @@
+import React, { useState, useMemo } from 'react';
+import Sidebar from '../components/layout/Sidebar';
+import Header from '../components/layout/Header';
+import { initialSchedules, type ScheduleEvent } from '../data/scheduleData';
+
+export default function JadwalPage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  // State untuk mengontrol bulan dan tanggal yang dipilih
+  const [currentDate, setCurrentDate] = useState(new Date(2024, 10, 1)); // Default: November 2024 (bulan 10 karena index dimulai dari 0)
+  const [selectedDate, setSelectedDate] = useState<string | null>('2024-11-12');
+
+  // Helper untuk mendapatkan nama bulan
+  const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  
+  // Logika Navigasi Bulan
+  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+
+  // Logika Membuat Grid Kalender
+  const calendarDays = useMemo(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const firstDay = new Date(year, month, 1).getDay(); // 0 = Minggu, 1 = Senin
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Geser start day agar Senin = 0, Minggu = 6
+    const startDayIndex = firstDay === 0 ? 6 : firstDay - 1;
+    
+    const days = [];
+    // Padding untuk hari kosong di awal bulan
+    for (let i = 0; i < startDayIndex; i++) {
+      days.push(null);
+    }
+    // Isi tanggal
+    for (let i = 1; i <= daysInMonth; i++) {
+      // Format YYYY-MM-DD
+      const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      days.push({ day: i, dateString });
+    }
+    return days;
+  }, [currentDate]);
+
+  // Filter event berdasarkan tanggal yang dipilih
+  const selectedEvents = initialSchedules.filter(event => event.date === selectedDate);
+
+  // Helper untuk mengecek apakah suatu tanggal punya event (untuk menampilkan titik)
+  const hasEvent = (dateString: string) => {
+    return initialSchedules.some(event => event.date === dateString);
+  };
+
+  return (
+    <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
+      <Sidebar isOpen={isSidebarOpen} />
+      
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
+        <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        
+        <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
+          <div className="flex flex-col w-full pb-space-xl pt-6">
+            
+            {/* Header Halaman */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
+              <div>
+                <h1 className="text-3xl font-bold text-on-surface tracking-tight">Jadwal & Kalender</h1>
+                <p className="text-on-surface-variant mt-1">Pantau jadwal kuliah dan tenggat waktu tugasmu.</p>
+              </div>
+              
+              {/* Kontrol Bulan */}
+              <div className="flex items-center gap-4 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20 shadow-sm">
+                <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
+                  <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+                </button>
+                <span className="font-semibold text-on-surface min-w-[120px] text-center">
+                  {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                </span>
+                <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
+                  <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Layout Grid: Kiri Kalender, Kanan Detail */}
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+              
+              {/* KOLOM KIRI: Kalender Grid (8 Kolom) */}
+              <div className="xl:col-span-8 bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
+                {/* Header Hari */}
+                <div className="grid grid-cols-7 mb-2">
+                  {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(day => (
+                    <div key={day} className="text-center font-semibold text-sm text-on-surface-variant py-2">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Grid Tanggal */}
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarDays.map((dayObj, index) => {
+                    if (!dayObj) return <div key={`empty-${index}`} className="h-24 rounded-xl bg-surface-container-lowest/30"></div>;
+                    
+                    const isSelected = selectedDate === dayObj.dateString;
+                    const dateHasEvent = hasEvent(dayObj.dateString);
+
+                    return (
+                      <div 
+                        key={dayObj.dateString}
+                        onClick={() => setSelectedDate(dayObj.dateString)}
+                        className={`
+                          h-24 rounded-xl p-2 flex flex-col cursor-pointer border transition-all relative
+                          ${isSelected 
+                            ? 'bg-primary-container/10 border-primary/50' 
+                            : 'bg-surface-container-lowest/30 border-transparent hover:bg-surface-container-highest/40'}
+                        `}
+                      >
+                        <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full mb-1 ${isSelected ? 'bg-primary text-on-primary' : 'text-on-surface'}`}>
+                          {dayObj.day}
+                        </span>
+                        
+                        {/* Indikator Titik Event */}
+                        {dateHasEvent && (
+                          <div className="mt-auto flex gap-1">
+                            <span className="w-2 h-2 rounded-full bg-error"></span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* KOLOM KANAN: Agenda Harian (4 Kolom) */}
+              <div className="xl:col-span-4 flex flex-col gap-4">
+                <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-bold text-on-surface">
+                      {selectedDate ? new Date(selectedDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Pilih Tanggal'}
+                    </h2>
+                    <span className="material-symbols-outlined text-outline">event_note</span>
+                  </div>
+
+                  {selectedEvents.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-center opacity-60">
+                      <span className="material-symbols-outlined text-4xl mb-2">free_cancellation</span>
+                      <p className="text-on-surface-variant">Tidak ada agenda di tanggal ini.</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {selectedEvents.map(event => (
+                        <div key={event.id} className="p-4 rounded-xl bg-surface-container border border-outline-variant/10 hover:border-outline-variant/30 transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
+                              event.type === 'deadline' ? 'bg-error-container text-error' :
+                              event.type === 'quiz' ? 'bg-tertiary-container text-tertiary' :
+                              'bg-secondary-container text-secondary'
+                            }`}>
+                              {event.course}
+                            </span>
+                            <span className="text-sm font-semibold text-on-surface-variant flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[16px]">schedule</span>
+                              {event.time}
+                            </span>
+                          </div>
+                          <h3 className="font-semibold text-on-surface">{event.title}</h3>
+                          <p className="text-sm text-outline capitalize mt-1">Tipe: {event.type === 'class' ? 'Kuliah' : event.type}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Legend Warna */}
+                <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
+                  <h3 className="font-semibold text-on-surface mb-4">Keterangan</h3>
+                  <div className="flex flex-col gap-2 text-sm text-on-surface-variant">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-error"></span> Deadline Tugas
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-tertiary"></span> Kuis / Ujian
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-secondary"></span> Jadwal Kuliah
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
