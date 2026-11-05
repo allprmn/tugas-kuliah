@@ -1,54 +1,66 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
-import { initialSchedules, type ScheduleEvent } from '../data/scheduleData';
+import { initialSchedules } from '../data/scheduleData';
 
 export default function JadwalPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
-  // State untuk mengontrol bulan dan tanggal yang dipilih
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 10, 1)); // Default: November 2024 (bulan 10 karena index dimulai dari 0)
+  const [currentDate, setCurrentDate] = useState(new Date(2024, 10, 1)); // November 2024
   const [selectedDate, setSelectedDate] = useState<string | null>('2024-11-12');
 
-  // Helper untuk mendapatkan nama bulan
+  // State untuk Pop-up Pilih Bulan/Tahun
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [pickerYear, setPickerYear] = useState(currentDate.getFullYear());
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Tutup pop-up jika klik di luar area
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        setIsPickerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
   
-  // Logika Navigasi Bulan
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
-  // Logika Membuat Grid Kalender
+  // Fungsi saat bulan dipilih dari pop-up
+  const handleSelectMonth = (monthIndex: number) => {
+    setCurrentDate(new Date(pickerYear, monthIndex, 1));
+    setIsPickerOpen(false);
+  };
+
+  // Fungsi navigasi tahun di dalam pop-up
+  const changePickerYear = (delta: number) => {
+    setPickerYear(prev => prev + delta);
+  };
+
+  // Logika Grid Kalender
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    
-    const firstDay = new Date(year, month, 1).getDay(); // 0 = Minggu, 1 = Senin
+    const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    // Geser start day agar Senin = 0, Minggu = 6
     const startDayIndex = firstDay === 0 ? 6 : firstDay - 1;
     
     const days = [];
-    // Padding untuk hari kosong di awal bulan
-    for (let i = 0; i < startDayIndex; i++) {
-      days.push(null);
-    }
-    // Isi tanggal
+    for (let i = 0; i < startDayIndex; i++) days.push(null);
     for (let i = 1; i <= daysInMonth; i++) {
-      // Format YYYY-MM-DD
       const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
       days.push({ day: i, dateString });
     }
     return days;
   }, [currentDate]);
 
-  // Filter event berdasarkan tanggal yang dipilih
   const selectedEvents = initialSchedules.filter(event => event.date === selectedDate);
 
-  // Helper untuk mengecek apakah suatu tanggal punya event (untuk menampilkan titik)
-  const hasEvent = (dateString: string) => {
-    return initialSchedules.some(event => event.date === dateString);
-  };
+  const hasEvent = (dateString: string) => initialSchedules.some(event => event.date === dateString);
 
   return (
     <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
@@ -60,33 +72,77 @@ export default function JadwalPage() {
         <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
           <div className="flex flex-col w-full pb-space-xl pt-6">
             
-            {/* Header Halaman */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
               <div>
                 <h1 className="text-3xl font-bold text-on-surface tracking-tight">Jadwal & Kalender</h1>
                 <p className="text-on-surface-variant mt-1">Pantau jadwal kuliah dan tenggat waktu tugasmu.</p>
               </div>
               
-              {/* Kontrol Bulan */}
-              <div className="flex items-center gap-4 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20 shadow-sm">
-                <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">chevron_left</span>
-                </button>
-                <span className="font-semibold text-on-surface min-w-[120px] text-center">
-                  {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                </span>
-                <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">chevron_right</span>
-                </button>
+              {/* ==== KONTROL BULAN & TAHUN (UPDATED) ==== */}
+              <div className="relative" ref={pickerRef}>
+                <div className="flex items-center gap-4 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20 shadow-sm">
+                  <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
+                    <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+                  </button>
+                  
+                  {/* Tombol Pembuka Pop-up */}
+                  <button 
+                    onClick={() => {
+                      setPickerYear(currentDate.getFullYear());
+                      setIsPickerOpen(!isPickerOpen);
+                    }}
+                    className="font-semibold text-on-surface min-w-[140px] text-center flex items-center justify-center gap-1 hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-surface-container-high"
+                  >
+                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                    <span className="material-symbols-outlined text-[18px]">expand_more</span>
+                  </button>
+
+                  <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
+                    <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                  </button>
+                </div>
+
+                {/* Dropdown Pilih Bulan & Tahun */}
+                {isPickerOpen && (
+                  <div className="absolute top-full mt-2 right-0 z-50 w-72 bg-surface-container-low rounded-xl shadow-xl border border-outline-variant/20 p-4 animate-in fade-in zoom-in-95 duration-200">
+                    {/* Navigasi Tahun */}
+                    <div className="flex items-center justify-between mb-4 bg-surface-container rounded-lg p-1">
+                      <button onClick={() => changePickerYear(-1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface-container-high text-on-surface">
+                        <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                      </button>
+                      <span className="font-semibold text-on-surface">{pickerYear}</span>
+                      <button onClick={() => changePickerYear(1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface-container-high text-on-surface">
+                        <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                      </button>
+                    </div>
+
+                    {/* Grid Bulan */}
+                    <div className="grid grid-cols-3 gap-2">
+                      {monthNames.map((month, idx) => (
+                        <button
+                          key={month}
+                          onClick={() => handleSelectMonth(idx)}
+                          className={`py-2 text-sm font-medium rounded-lg transition-colors ${
+                            idx === currentDate.getMonth() && pickerYear === currentDate.getFullYear()
+                              ? 'bg-primary text-on-primary shadow-md'
+                              : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                          }`}
+                        >
+                          {month.substring(0, 3)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
+              {/* ==== END KONTROL BULAN & TAHUN ==== */}
+
             </div>
 
-            {/* Layout Grid: Kiri Kalender, Kanan Detail */}
+            {/* Layout Grid */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
-              
-              {/* KOLOM KIRI: Kalender Grid (8 Kolom) */}
+              {/* KIRI: Kalender */}
               <div className="xl:col-span-8 bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
-                {/* Header Hari */}
                 <div className="grid grid-cols-7 mb-2">
                   {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(day => (
                     <div key={day} className="text-center font-semibold text-sm text-on-surface-variant py-2">
@@ -95,7 +151,6 @@ export default function JadwalPage() {
                   ))}
                 </div>
                 
-                {/* Grid Tanggal */}
                 <div className="grid grid-cols-7 gap-1">
                   {calendarDays.map((dayObj, index) => {
                     if (!dayObj) return <div key={`empty-${index}`} className="h-24 rounded-xl bg-surface-container-lowest/30"></div>;
@@ -118,7 +173,6 @@ export default function JadwalPage() {
                           {dayObj.day}
                         </span>
                         
-                        {/* Indikator Titik Event */}
                         {dateHasEvent && (
                           <div className="mt-auto flex gap-1">
                             <span className="w-2 h-2 rounded-full bg-error"></span>
@@ -130,7 +184,7 @@ export default function JadwalPage() {
                 </div>
               </div>
 
-              {/* KOLOM KANAN: Agenda Harian (4 Kolom) */}
+              {/* KANAN: Agenda */}
               <div className="xl:col-span-4 flex flex-col gap-4">
                 <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
@@ -170,19 +224,12 @@ export default function JadwalPage() {
                   )}
                 </div>
 
-                {/* Legend Warna */}
                 <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
                   <h3 className="font-semibold text-on-surface mb-4">Keterangan</h3>
                   <div className="flex flex-col gap-2 text-sm text-on-surface-variant">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-error"></span> Deadline Tugas
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-tertiary"></span> Kuis / Ujian
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-secondary"></span> Jadwal Kuliah
-                    </div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-error"></span> Deadline Tugas</div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-tertiary"></span> Kuis / Ujian</div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-secondary"></span> Jadwal Kuliah</div>
                   </div>
                 </div>
               </div>
