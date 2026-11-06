@@ -6,11 +6,12 @@ import type { Task } from '../types';
 
 export default function ArsipPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [archives, setArchives] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // 1. State pencarian
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Ambil data yang sudah selesai dari Supabase
   useEffect(() => {
     const fetchArchives = async () => {
       setIsLoading(true);
@@ -18,7 +19,7 @@ export default function ArsipPage() {
         .from('tasks')
         .select('*')
         .eq('is_completed', true)
-        .order('deadline', { ascending: false }); // Urutkan dari yang terbaru
+        .order('deadline', { ascending: false });
 
       if (!error && data) setArchives(data);
       setIsLoading(false);
@@ -27,10 +28,11 @@ export default function ArsipPage() {
     fetchArchives();
   }, []);
 
-  // Filter pencarian
+  // 2. Filter tabel berdasarkan state searchQuery
   const filteredArchives = archives.filter(task => 
-    task.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    task.course.toLowerCase().includes(searchQuery.toLowerCase())
+    (task.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (task.course || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (task.course_code || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -38,7 +40,14 @@ export default function ArsipPage() {
       <Sidebar isOpen={isSidebarOpen} />
       
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
-        <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+        
+        {/* 3. Kirim state ke Header */}
+        <Header 
+          isSidebarOpen={isSidebarOpen} 
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
         
         <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
           <div className="flex flex-col w-full pb-space-xl pt-6 max-w-6xl mx-auto">
@@ -50,27 +59,16 @@ export default function ArsipPage() {
               </div>
             </div>
 
-            <div className="bg-surface-container-low rounded-xl p-4 mb-space-lg flex flex-col md:flex-row gap-4 shadow-sm">
-              <div className="relative flex-1">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
-                <input 
-                  type="text"
-                  placeholder="Cari tugas..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-10 pl-10 pr-4 rounded-lg bg-surface-container text-on-surface placeholder:text-outline font-body-sm focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
-                />
-              </div>
-            </div>
-
-            <div className="bg-surface-container-low rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
+            <div className="bg-surface-container-low rounded-xl overflow-hidden shadow-sm border border-outline-variant/10 mt-4">
               {isLoading ? (
                 <div className="text-center py-10 text-on-surface-variant">Memuat data arsip...</div>
               ) : filteredArchives.length === 0 ? (
                 <div className="text-center py-20">
                   <span className="material-symbols-outlined text-5xl text-outline mb-3">inventory_2</span>
-                  <h3 className="text-lg font-semibold text-on-surface">Arsip Kosong</h3>
-                  <p className="text-on-surface-variant text-sm mt-1">Belum ada tugas yang diselesaikan.</p>
+                  <h3 className="text-lg font-semibold text-on-surface">Arsip Tidak Ditemukan</h3>
+                  <p className="text-on-surface-variant text-sm mt-1">
+                    {searchQuery ? `Tidak ada arsip yang cocok dengan pencarian "${searchQuery}".` : 'Belum ada tugas yang diselesaikan.'}
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -93,7 +91,9 @@ export default function ArsipPage() {
                           <td className="py-4 px-4 align-top">
                             <div className="flex flex-col">
                               <h4 className="font-semibold text-on-surface">{task.title}</h4>
-                              <p className="text-xs text-on-surface-variant mt-1">{task.course}</p>
+                              <p className="text-xs text-on-surface-variant mt-1 font-medium">
+                                {task.course} ({task.course_code})
+                              </p>
                             </div>
                           </td>
                           <td className="py-4 px-4 align-top whitespace-nowrap">

@@ -25,7 +25,7 @@ export default function MataKuliahPage() {
   // Fetch Data (Courses & Tasks)
   const fetchData = async () => {
     setIsLoading(true);
-    
+
     // Ambil data dari dua tabel secara bersamaan
     const [coursesRes, tasksRes] = await Promise.all([
       supabase.from('courses').select('*').order('created_at', { ascending: true }),
@@ -34,20 +34,20 @@ export default function MataKuliahPage() {
 
     if (coursesRes.data && tasksRes.data) {
       const allTasks = tasksRes.data;
-      
+
       // Gabungkan data courses dengan kalkulasi dari tasks
       const coursesWithStats = coursesRes.data.map((course) => {
         // Cari tugas yang kode mata kuliahnya cocok
         const courseTasks = allTasks.filter(
           (t) => t.course_code === course.code || t.course === course.name
         );
-        
+
         const totalTasks = courseTasks.length;
         const completedTasks = courseTasks.filter((t) => t.is_completed).length;
-        
+
         // Hitung persentase (hindari pembagian dengan nol)
-        const calculatedProgress = totalTasks > 0 
-          ? Math.round((completedTasks / totalTasks) * 100) 
+        const calculatedProgress = totalTasks > 0
+          ? Math.round((completedTasks / totalTasks) * 100)
           : 0;
 
         return {
@@ -79,22 +79,21 @@ export default function MataKuliahPage() {
   const totalKelas = courses.length;
   const totalSKS = courses.reduce((sum, course) => sum + course.sks, 0);
   const totalDosen = new Set(courses.map(c => c.lecturer)).size;
-  
+
   // Rata-rata progress dihitung dari calculatedProgress
-  const rataRataProgress = totalKelas > 0 
-    ? Math.round(courses.reduce((sum, course) => sum + course.calculatedProgress, 0) / totalKelas) 
+  const rataRataProgress = totalKelas > 0
+    ? Math.round(courses.reduce((sum, course) => sum + course.calculatedProgress, 0) / totalKelas)
     : 0;
 
   // --- LOGIKA FILTER & SEARCH ---
   const filteredCourses = courses.filter(course => {
-    const matchesSearch = 
-      course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.lecturer.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      (course.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (course.code || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     let matchesTab = true;
-    if (activeTab === 'has_tasks') matchesTab = course.hasTasks; // Punya tugas
-    if (activeTab === 'no_tasks') matchesTab = !course.hasTasks; // 0 tugas
+    if (activeTab === 'has_tasks') matchesTab = course.hasTasks;
+    if (activeTab === 'no_tasks') matchesTab = !course.hasTasks;
 
     return matchesSearch && matchesTab;
   });
@@ -102,15 +101,20 @@ export default function MataKuliahPage() {
   return (
     <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
       <Sidebar isOpen={isSidebarOpen} />
-      
+
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
-        <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-        
+        <Header
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+
         <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
           <div className="flex flex-col w-full pb-space-xl pt-6 max-w-7xl mx-auto">
-            
+
             <div className="flex justify-end mb-4">
-              <button 
+              <button
                 onClick={() => setIsModalOpen(true)}
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-on-primary font-semibold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all text-sm"
               >
@@ -161,31 +165,21 @@ export default function MataKuliahPage() {
 
             {/* 2. BAGIAN SEARCH & TAB FILTER */}
             <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 mb-6">
-              <div className="relative flex-1 max-w-lg">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
-                <input 
-                  type="text"
-                  placeholder="Cari nama mata kuliah, kode, atau nama dosen..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-11 pl-10 pr-4 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline text-sm border border-outline-variant/10 focus:outline-none focus:border-primary/50 transition-all"
-                />
-              </div>
-              
+
               <div className="flex bg-surface-container-low p-1 rounded-xl border border-outline-variant/10 overflow-x-auto">
-                <button 
+                <button
                   onClick={() => setActiveTab('all')}
                   className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-white'}`}
                 >
                   Semua ({courses.length})
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveTab('has_tasks')}
                   className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'has_tasks' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-white'}`}
                 >
                   Ada Tugas ({courses.filter(c => c.hasTasks).length})
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveTab('no_tasks')}
                   className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'no_tasks' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-white'}`}
                 >
@@ -207,8 +201,8 @@ export default function MataKuliahPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCourses.map((course) => (
                   <div key={course.id} className="relative bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm hover:border-primary/30 transition-all group flex flex-col h-full">
-                    
-                    <button 
+
+                    <button
                       onClick={() => handleDelete(course.id)}
                       className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-outline opacity-0 group-hover:opacity-100 hover:bg-error/10 hover:text-error transition-all z-10"
                     >
@@ -242,14 +236,14 @@ export default function MataKuliahPage() {
                           {course.calculatedProgress}%
                         </span>
                         <span className="text-xs text-outline mb-1">
-                          {course.hasTasks 
-                            ? `${course.completedTasks}/${course.totalTasks} Tugas` 
+                          {course.hasTasks
+                            ? `${course.completedTasks}/${course.totalTasks} Tugas`
                             : 'Belum ada tugas'}
                         </span>
                       </div>
                       <div className="w-full bg-surface-container-highest h-2.5 rounded-full overflow-hidden">
-                        <div 
-                          className="bg-emerald-400 h-full rounded-full transition-all duration-500" 
+                        <div
+                          className="bg-emerald-400 h-full rounded-full transition-all duration-500"
                           style={{ width: `${course.calculatedProgress}%` }}
                         ></div>
                       </div>

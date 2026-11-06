@@ -21,10 +21,8 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
   useEffect(() => {
     fetchTaskCount();
 
-    // Mendengarkan sinyal "tasksUpdated" dari halaman lain
     window.addEventListener('tasksUpdated', fetchTaskCount);
     
-    // Bersihkan listener saat komponen di-unmount
     return () => window.removeEventListener('tasksUpdated', fetchTaskCount);
   }, []);
 
@@ -59,13 +57,13 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
         <div className="h-20 flex items-center px-4 mt-2">
           <div className="flex items-center gap-3 w-full">
             <img 
-              src="https://ui-avatars.com/api/?name=Nadia+Larasati&background=2563eb&color=fff" 
+              src="https://ui-avatars.com/api/?name=Aldi+Pramana&background=2563eb&color=fff" 
               alt="Profile" 
               className="w-10 h-10 rounded-full shrink-0 object-cover ring-2 ring-primary/20"
             />
             <div className="flex flex-col whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
-              <span className="font-label-md text-label-md text-on-surface font-semibold">Nadia Larasati</span>
-              <span className="font-label-sm text-label-sm text-outline">Mahasiswa</span>
+              <span className="font-label-md text-label-md text-on-surface font-semibold">Aldi Pramana</span>
+              <span className="font-label-sm text-label-sm text-outline">1247050031</span>
             </div>
           </div>
         </div>

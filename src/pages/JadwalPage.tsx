@@ -7,32 +7,27 @@ import type { Task } from '../types';
 export default function JadwalPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
-  // State untuk Data Supabase (Hanya Tugas)
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // State Kalender
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(
-    new Date().toLocaleDateString('en-CA') // format YYYY-MM-DD lokal
+    new Date().toLocaleDateString('en-CA') 
   );
 
-  // State untuk Pop-up Pilih Bulan/Tahun
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [pickerYear, setPickerYear] = useState(currentDate.getFullYear());
   const pickerRef = useRef<HTMLDivElement>(null);
 
-  // Mendapatkan tanggal hari ini (Format YYYY-MM-DD) dengan aman
   const todayStr = useMemo(() => {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   }, []);
 
-  // Fetch Data Tugas dari Supabase
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      // Ambil SEMUA tugas (baik selesai maupun belum)
+      
       const { data } = await supabase
         .from('tasks')
         .select('*')
@@ -43,12 +38,10 @@ export default function JadwalPage() {
     };
     fetchData();
 
-    // Sinyal update jika ada tugas baru/edit dari halaman lain
     window.addEventListener('tasksUpdated', fetchData);
     return () => window.removeEventListener('tasksUpdated', fetchData);
   }, []);
 
-  // Tutup pop-up jika klik di luar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
@@ -71,7 +64,6 @@ export default function JadwalPage() {
 
   const changePickerYear = (delta: number) => setPickerYear(prev => prev + delta);
 
-  // Logika Grid Kalender
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -88,14 +80,11 @@ export default function JadwalPage() {
     return days;
   }, [currentDate]);
 
-  // ==========================================
-  // LOGIKA FILTER TUGAS BERDASARKAN TANGGAL
-  // ==========================================
+
   const getTasksForDate = (dateString: string) => {
     return tasks.filter(task => task.deadline === dateString);
   };
 
-  // Helper: Mengecek apakah tugas harus berwarna abu-abu (Selesai atau Lewat)
   const isTaskInactive = (task: Task) => {
     return task.is_completed || task.deadline < todayStr;
   };
@@ -118,7 +107,6 @@ export default function JadwalPage() {
                 <p className="text-on-surface-variant mt-1">Pantau tenggat waktu tugas kuliahmu.</p>
               </div>
               
-              {/* Kontrol Bulan & Tahun */}
               <div className="relative" ref={pickerRef}>
                 <div className="flex items-center gap-4 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20 shadow-sm">
                   <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
@@ -171,7 +159,6 @@ export default function JadwalPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
               
-              {/* KIRI: Kalender */}
               <div className="xl:col-span-8 bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm relative">
                 {isLoading && (
                   <div className="absolute inset-0 bg-surface-container-low/80 z-10 flex items-center justify-center rounded-2xl">
@@ -209,7 +196,6 @@ export default function JadwalPage() {
                           {dayObj.day}
                         </span>
                         
-                        {/* Indikator Titik Deadline */}
                         {tasksOnDate.length > 0 && (
                           <div className="mt-auto flex gap-1 flex-wrap">
                             {tasksOnDate.slice(0, 3).map((task, i) => (
@@ -229,7 +215,6 @@ export default function JadwalPage() {
                 </div>
               </div>
 
-              {/* KANAN: Detail Agenda */}
               <div className="xl:col-span-4 flex flex-col gap-4">
                 <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
                   <div className="flex items-center justify-between mb-6">

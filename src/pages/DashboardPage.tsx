@@ -10,9 +10,10 @@ export default function DashboardPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // State Modal & Edit
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+    const [searchQuery, setSearchQuery] = useState('');
 
     const fetchTasks = async () => {
         setIsLoading(true);
@@ -48,7 +49,6 @@ export default function DashboardPage() {
         setIsModalOpen(true);
     };
 
-    // Fungsi untuk menghapus tugas
     const handleDeleteTask = async (id: string) => {
         if (window.confirm('Yakin ingin menghapus tugas ini?')) {
             const { error } = await supabase.from('tasks').delete().eq('id', id);
@@ -74,12 +74,22 @@ export default function DashboardPage() {
         return { text: `Terlambat`, color: 'text-error' };
     };
 
+    const filteredTasks = tasks.filter(task =>
+        (task.course || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (task.title || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
             <Sidebar isOpen={isSidebarOpen} />
 
             <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
-                <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+                <Header
+                    isSidebarOpen={isSidebarOpen}
+                    onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                />
 
                 <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
                     <div className="flex flex-col w-full pb-space-xl pt-6">
@@ -100,15 +110,15 @@ export default function DashboardPage() {
 
                         {isLoading ? (
                             <div className="text-center py-20 text-on-surface-variant">Memuat data...</div>
-                        ) : tasks.length === 0 ? (
+                        ) : filteredTasks.length === 0 ? (
                             <div className="text-center py-20 bg-surface-container-low rounded-2xl border border-outline-variant/10">
                                 <span className="material-symbols-outlined text-5xl text-tertiary mb-3">task_alt</span>
-                                <h3 className="text-lg font-semibold text-on-surface">Semua tugas selesai!</h3>
-                                <p className="text-on-surface-variant text-sm mt-1">Tidak ada tugas aktif saat ini.</p>
+                                <h3 className="text-lg font-semibold text-on-surface">Tugas tidak ditemukan</h3>
+                                <p className="text-on-surface-variant text-sm mt-1">Tidak ada tugas yang cocok dengan pencarianmu.</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {tasks.map((task) => {
+                                {filteredTasks.map((task) => {
                                     const remaining = getDaysRemaining(task.deadline);
 
                                     return (
@@ -180,7 +190,6 @@ export default function DashboardPage() {
                 </main>
             </div>
 
-            {/* Kirim data editingTask ke Modal */}
             <TaskModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
