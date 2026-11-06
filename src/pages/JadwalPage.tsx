@@ -1,20 +1,54 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
-import { initialSchedules } from '../data/scheduleData';
+import { supabase } from '../lib/supabaseClient';
+import type { Task } from '../types';
 
 export default function JadwalPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 10, 1)); // November 2024
-  const [selectedDate, setSelectedDate] = useState<string | null>('2024-11-12');
+  // State untuk Data Supabase (Hanya Tugas)
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // State Kalender
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(
+    new Date().toLocaleDateString('en-CA') // format YYYY-MM-DD lokal
+  );
 
   // State untuk Pop-up Pilih Bulan/Tahun
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [pickerYear, setPickerYear] = useState(currentDate.getFullYear());
   const pickerRef = useRef<HTMLDivElement>(null);
 
-  // Tutup pop-up jika klik di luar area
+  // Mendapatkan tanggal hari ini (Format YYYY-MM-DD) dengan aman
+  const todayStr = useMemo(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  // Fetch Data Tugas dari Supabase
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      // Ambil SEMUA tugas (baik selesai maupun belum)
+      const { data } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('deadline', { ascending: true });
+
+      if (data) setTasks(data);
+      setIsLoading(false);
+    };
+    fetchData();
+
+    // Sinyal update jika ada tugas baru/edit dari halaman lain
+    window.addEventListener('tasksUpdated', fetchData);
+    return () => window.removeEventListener('tasksUpdated', fetchData);
+  }, []);
+
+  // Tutup pop-up jika klik di luar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
@@ -26,20 +60,16 @@ export default function JadwalPage() {
   }, []);
 
   const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-  
+
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
-  // Fungsi saat bulan dipilih dari pop-up
   const handleSelectMonth = (monthIndex: number) => {
     setCurrentDate(new Date(pickerYear, monthIndex, 1));
     setIsPickerOpen(false);
   };
 
-  // Fungsi navigasi tahun di dalam pop-up
-  const changePickerYear = (delta: number) => {
-    setPickerYear(prev => prev + delta);
-  };
+  const changePickerYear = (delta: number) => setPickerYear(prev => prev + delta);
 
   // Logika Grid Kalender
   const calendarDays = useMemo(() => {
@@ -58,9 +88,19 @@ export default function JadwalPage() {
     return days;
   }, [currentDate]);
 
-  const selectedEvents = initialSchedules.filter(event => event.date === selectedDate);
+  // ==========================================
+  // LOGIKA FILTER TUGAS BERDASARKAN TANGGAL
+  // ==========================================
+  const getTasksForDate = (dateString: string) => {
+    return tasks.filter(task => task.deadline === dateString);
+  };
 
-  const hasEvent = (dateString: string) => initialSchedules.some(event => event.date === dateString);
+  // Helper: Mengecek apakah tugas harus berwarna abu-abu (Selesai atau Lewat)
+  const isTaskInactive = (task: Task) => {
+    return task.is_completed || task.deadline < todayStr;
+  };
+
+  const selectedTasks = selectedDate ? getTasksForDate(selectedDate) : [];
 
   return (
     <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
@@ -75,22 +115,18 @@ export default function JadwalPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
               <div>
                 <h1 className="text-3xl font-bold text-on-surface tracking-tight">Jadwal & Kalender</h1>
-                <p className="text-on-surface-variant mt-1">Pantau jadwal kuliah dan tenggat waktu tugasmu.</p>
+                <p className="text-on-surface-variant mt-1">Pantau tenggat waktu tugas kuliahmu.</p>
               </div>
               
-              {/* ==== KONTROL BULAN & TAHUN (UPDATED) ==== */}
+              {/* Kontrol Bulan & Tahun */}
               <div className="relative" ref={pickerRef}>
                 <div className="flex items-center gap-4 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20 shadow-sm">
                   <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
                     <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                   </button>
                   
-                  {/* Tombol Pembuka Pop-up */}
                   <button 
-                    onClick={() => {
-                      setPickerYear(currentDate.getFullYear());
-                      setIsPickerOpen(!isPickerOpen);
-                    }}
+                    onClick={() => { setPickerYear(currentDate.getFullYear()); setIsPickerOpen(!isPickerOpen); }}
                     className="font-semibold text-on-surface min-w-[140px] text-center flex items-center justify-center gap-1 hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-surface-container-high"
                   >
                     {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
@@ -102,10 +138,8 @@ export default function JadwalPage() {
                   </button>
                 </div>
 
-                {/* Dropdown Pilih Bulan & Tahun */}
                 {isPickerOpen && (
                   <div className="absolute top-full mt-2 right-0 z-50 w-72 bg-surface-container-low rounded-xl shadow-xl border border-outline-variant/20 p-4 animate-in fade-in zoom-in-95 duration-200">
-                    {/* Navigasi Tahun */}
                     <div className="flex items-center justify-between mb-4 bg-surface-container rounded-lg p-1">
                       <button onClick={() => changePickerYear(-1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface-container-high text-on-surface">
                         <span className="material-symbols-outlined text-[18px]">chevron_left</span>
@@ -115,8 +149,6 @@ export default function JadwalPage() {
                         <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                       </button>
                     </div>
-
-                    {/* Grid Bulan */}
                     <div className="grid grid-cols-3 gap-2">
                       {monthNames.map((month, idx) => (
                         <button
@@ -135,14 +167,18 @@ export default function JadwalPage() {
                   </div>
                 )}
               </div>
-              {/* ==== END KONTROL BULAN & TAHUN ==== */}
-
             </div>
 
-            {/* Layout Grid */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+              
               {/* KIRI: Kalender */}
-              <div className="xl:col-span-8 bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
+              <div className="xl:col-span-8 bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm relative">
+                {isLoading && (
+                  <div className="absolute inset-0 bg-surface-container-low/80 z-10 flex items-center justify-center rounded-2xl">
+                    <span className="text-on-surface-variant">Memuat data kalender...</span>
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-7 mb-2">
                   {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(day => (
                     <div key={day} className="text-center font-semibold text-sm text-on-surface-variant py-2">
@@ -156,7 +192,7 @@ export default function JadwalPage() {
                     if (!dayObj) return <div key={`empty-${index}`} className="h-24 rounded-xl bg-surface-container-lowest/30"></div>;
                     
                     const isSelected = selectedDate === dayObj.dateString;
-                    const dateHasEvent = hasEvent(dayObj.dateString);
+                    const tasksOnDate = getTasksForDate(dayObj.dateString);
 
                     return (
                       <div 
@@ -173,9 +209,18 @@ export default function JadwalPage() {
                           {dayObj.day}
                         </span>
                         
-                        {dateHasEvent && (
-                          <div className="mt-auto flex gap-1">
-                            <span className="w-2 h-2 rounded-full bg-error"></span>
+                        {/* Indikator Titik Deadline */}
+                        {tasksOnDate.length > 0 && (
+                          <div className="mt-auto flex gap-1 flex-wrap">
+                            {tasksOnDate.slice(0, 3).map((task, i) => (
+                              <span 
+                                key={i} 
+                                className={`w-2 h-2 rounded-full ${
+                                  isTaskInactive(task) ? 'bg-outline/50' : 'bg-error'
+                                }`}
+                              ></span>
+                            ))}
+                            {tasksOnDate.length > 3 && <span className="text-[10px] text-outline">+</span>}
                           </div>
                         )}
                       </div>
@@ -184,7 +229,7 @@ export default function JadwalPage() {
                 </div>
               </div>
 
-              {/* KANAN: Agenda */}
+              {/* KANAN: Detail Agenda */}
               <div className="xl:col-span-4 flex flex-col gap-4">
                 <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
@@ -194,30 +239,36 @@ export default function JadwalPage() {
                     <span className="material-symbols-outlined text-outline">event_note</span>
                   </div>
 
-                  {selectedEvents.length === 0 ? (
+                  {selectedTasks.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 text-center opacity-60">
                       <span className="material-symbols-outlined text-4xl mb-2">free_cancellation</span>
-                      <p className="text-on-surface-variant">Tidak ada agenda di tanggal ini.</p>
+                      <p className="text-on-surface-variant">Tidak ada deadline tugas di tanggal ini.</p>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3">
-                      {selectedEvents.map(event => (
-                        <div key={event.id} className="p-4 rounded-xl bg-surface-container border border-outline-variant/10 hover:border-outline-variant/30 transition-colors">
+                      {selectedTasks.map(task => (
+                        <div key={task.id} className="p-4 rounded-xl bg-surface-container border border-outline-variant/10 hover:border-outline-variant/30 transition-colors">
                           <div className="flex items-center justify-between mb-2">
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
-                              event.type === 'deadline' ? 'bg-error-container text-error' :
-                              event.type === 'quiz' ? 'bg-tertiary-container text-tertiary' :
-                              'bg-secondary-container text-secondary'
+                              isTaskInactive(task) ? 'bg-surface-container-high text-outline' : 'bg-error-container text-error'
                             }`}>
-                              {event.course}
+                              {task.course_code}
                             </span>
-                            <span className="text-sm font-semibold text-on-surface-variant flex items-center gap-1">
+                            <span className={`text-sm font-semibold flex items-center gap-1 ${
+                              isTaskInactive(task) ? 'text-outline' : 'text-on-surface-variant'
+                            }`}>
                               <span className="material-symbols-outlined text-[16px]">schedule</span>
-                              {event.time}
+                              23:59
                             </span>
                           </div>
-                          <h3 className="font-semibold text-on-surface">{event.title}</h3>
-                          <p className="text-sm text-outline capitalize mt-1">Tipe: {event.type === 'class' ? 'Kuliah' : event.type}</p>
+                          <h3 className={`font-semibold ${isTaskInactive(task) ? 'text-outline line-through' : 'text-on-surface'}`}>
+                            {task.title}
+                          </h3>
+                          <p className={`text-sm mt-1 capitalize font-medium ${
+                            isTaskInactive(task) ? 'text-outline' : 'text-error'
+                          }`}>
+                            Status: {task.is_completed ? 'Selesai' : (task.deadline < todayStr ? 'Terlewat' : 'Mendesak')}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -227,9 +278,8 @@ export default function JadwalPage() {
                 <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
                   <h3 className="font-semibold text-on-surface mb-4">Keterangan</h3>
                   <div className="flex flex-col gap-2 text-sm text-on-surface-variant">
-                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-error"></span> Deadline Tugas</div>
-                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-tertiary"></span> Kuis / Ujian</div>
-                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-secondary"></span> Jadwal Kuliah</div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-error"></span> Deadline Aktif (Belum Selesai)</div>
+                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-outline/50"></span> Deadline Selesai / Terlewat</div>
                   </div>
                 </div>
               </div>
