@@ -4,7 +4,6 @@ import Header from '../components/layout/Header';
 import TaskModal from '../components/TaskModal';
 import LatticeLoader from '../components/ui/LatticeLoader';
 import { supabase } from '../lib/supabaseClient';
-import { fetchDataDariSupabase } from '../utils/apiHelpers';
 import type { Task } from '../types';
 
 export default function DashboardPage() {
@@ -17,6 +16,7 @@ export default function DashboardPage() {
 
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Fungsi utama untuk mengambil data (Hanya tugas yang belum selesai)
     const fetchTasks = async () => {
         setIsLoading(true);
         const { data, error } = await supabase
@@ -32,11 +32,8 @@ export default function DashboardPage() {
         setIsLoading(false);
     };
 
+    // Panggil fungsi utama saat pertama kali dimuat
     useEffect(() => {
-        const fetchTasks = async () => {
-            const data = await fetchDataDariSupabase<Task>('tasks');
-            setTasks(data);
-        }
         fetchTasks();
     }, []);
 
