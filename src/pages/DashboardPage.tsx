@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import TaskModal from '../components/TaskModal';
@@ -91,7 +91,6 @@ export default function DashboardPage() {
 
             <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
                 <Header
-                    isSidebarOpen={isSidebarOpen}
                     onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}

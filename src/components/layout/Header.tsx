@@ -1,13 +1,8 @@
-import React from 'react';
-
-// Tambahkan searchQuery dan setSearchQuery ke dalam parameter
 export default function Header({ 
-  isSidebarOpen, 
-  onToggleSidebar, 
+ onToggleSidebar, 
   searchQuery = '', 
   setSearchQuery = () => {} 
 }: { 
-  isSidebarOpen: boolean, 
   onToggleSidebar: () => void, 
   searchQuery?: string, 
   setSearchQuery?: (val: string) => void 

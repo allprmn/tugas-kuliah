@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function TaskPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white p-8">

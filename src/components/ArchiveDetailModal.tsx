@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SpotlightCard from './ui/SpotlightCard';
 import type { Task } from '../types';

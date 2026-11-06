@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import LatticeLoader from '../components/ui/LatticeLoader';
@@ -97,7 +97,9 @@ export default function JadwalPage() {
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
-        <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+         <Header 
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+        />
 
         <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
           <div className="flex flex-col w-full pb-space-xl pt-6">

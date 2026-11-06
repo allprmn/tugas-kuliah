@@ -1,6 +1,4 @@
-import React from 'react';
-import type { Course } from '../../data/courseData';
-
+import type { Course } from '../../types';
 export default function CourseCard({ course }: { course: Course }) {
   return (
     <div className="p-6 rounded-2xl bg-surface-container-low border border-surface-container-highest/20 hover:border-primary/30 hover:bg-surface-container transition-all duration-300 shadow-sm flex flex-col justify-between group">
