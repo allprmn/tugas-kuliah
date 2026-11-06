@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
+import AnimatedList from '../components/ui/AnimatedList';
+import LatticeLoader from '../components/ui/LatticeLoader';
 import { supabase } from '../lib/supabaseClient';
 import type { Task } from '../types';
+import ArchiveDetailModal from '../components/ArchiveDetailModal';
 
 export default function ArsipPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [archives, setArchives] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // 1. State pencarian
+
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  // State pencarian yang terhubung ke Header
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Ambil data yang sudah selesai dari Supabase
   useEffect(() => {
     const fetchArchives = async () => {
       setIsLoading(true);
@@ -28,30 +34,39 @@ export default function ArsipPage() {
     fetchArchives();
   }, []);
 
-  // 2. Filter tabel berdasarkan state searchQuery
-  const filteredArchives = archives.filter(task => 
-    (task.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+  // Filter pencarian berdasarkan Judul Tugas atau Nama Mata Kuliah
+  const filteredArchives = archives.filter(task =>
+    (task.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (task.course || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (task.course_code || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // --- KONVERSI DATA UNTUK ANIMATED LIST ---
+  // AnimatedList membutuhkan format { title, description, meta }
+  const listItems = filteredArchives.map((task) => ({
+    title: task.title,
+    description: `${task.course} (${task.course_code})`,
+    meta: task.deadline,
+    // Kita simpan data asli jika nanti butuh fungsi onClick detail
+    originalData: task
+  }));
+
   return (
     <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
-      <Sidebar isOpen={isSidebarOpen} />
-      
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
-        
-        {/* 3. Kirim state ke Header */}
-        <Header 
-          isSidebarOpen={isSidebarOpen} 
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+
+        <Header
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
         />
-        
+
         <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
           <div className="flex flex-col w-full pb-space-xl pt-6 max-w-6xl mx-auto">
-            
+
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
               <div>
                 <h1 className="text-3xl font-bold text-on-surface tracking-tight">Arsip Tugas Selesai</h1>
@@ -59,11 +74,20 @@ export default function ArsipPage() {
               </div>
             </div>
 
-            <div className="bg-surface-container-low rounded-xl overflow-hidden shadow-sm border border-outline-variant/10 mt-4">
+            {/* Tampilan List Animasi */}
+            <div className="mt-4 w-full max-w-5xl mx-auto">
               {isLoading ? (
-                <div className="text-center py-10 text-on-surface-variant">Memuat data arsip...</div>
+                <div className="flex flex-col items-center justify-center py-20">
+                  <LatticeLoader
+                    status="working"
+                    label="Memuat Arsip..."
+                    pattern="orbit"
+                    color="#dae2fd"
+                    showTimer={false}
+                  />
+                </div>
               ) : filteredArchives.length === 0 ? (
-                <div className="text-center py-20">
+                <div className="w-full text-center py-20 bg-surface-container-low rounded-2xl border border-outline-variant/10">
                   <span className="material-symbols-outlined text-5xl text-outline mb-3">inventory_2</span>
                   <h3 className="text-lg font-semibold text-on-surface">Arsip Tidak Ditemukan</h3>
                   <p className="text-on-surface-variant text-sm mt-1">
@@ -71,45 +95,41 @@ export default function ArsipPage() {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-surface-container-high/50 border-b border-outline-variant/20">
-                        <th className="py-3 px-4 text-xs font-semibold text-outline uppercase tracking-wider w-16 text-center">Status</th>
-                        <th className="py-3 px-4 text-xs font-semibold text-outline uppercase tracking-wider">Tugas & Mata Kuliah</th>
-                        <th className="py-3 px-4 text-xs font-semibold text-outline uppercase tracking-wider whitespace-nowrap">Tenggat Waktu</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-outline-variant/10">
-                      {filteredArchives.map((task) => (
-                        <tr key={task.id} className="hover:bg-surface-container transition-colors group">
-                          <td className="py-4 px-4 text-center align-top">
-                            <div className="w-7 h-7 mx-auto rounded-full bg-surface-container-high flex items-center justify-center text-tertiary">
-                              <span className="material-symbols-outlined text-[18px]">check_circle</span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 align-top">
-                            <div className="flex flex-col">
-                              <h4 className="font-semibold text-on-surface">{task.title}</h4>
-                              <p className="text-xs text-on-surface-variant mt-1 font-medium">
-                                {task.course} ({task.course_code})
-                              </p>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 align-top whitespace-nowrap">
-                            <span className="text-sm text-on-surface">{task.deadline}</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <AnimatedList
+                  items={listItems}
+                  onItemSelect={(item,) => {
+                    const selectedData = (item as any).originalData;
+                    if (selectedData) setSelectedTask(selectedData);
+                  }
+                  }
+                  animation="pop"
+                  theme="dark"
+                  width="100%"
+                  maxHeight={600}
+                  radius={14}
+                  gap={12}
+                  stagger={0.05}
+                  fadeSize={56}
+                  frame
+                  showGradients
+                  displayScrollbar
+                  selectOnHover
+                  enableArrowNavigation
+                  loop={false}
+                  animateOnce={false}
+                  initialSelectedIndex={-1}
+                />
               )}
             </div>
 
           </div>
         </main>
       </div>
+      <ArchiveDetailModal
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        task={selectedTask}
+      />
     </div>
   );
 }

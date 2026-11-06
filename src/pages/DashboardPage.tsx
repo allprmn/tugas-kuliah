@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import TaskModal from '../components/TaskModal';
+import LatticeLoader from '../components/ui/LatticeLoader';
 import { supabase } from '../lib/supabaseClient';
+import { fetchDataDariSupabase } from '../utils/apiHelpers';
 import type { Task } from '../types';
 
 export default function DashboardPage() {
@@ -31,6 +33,10 @@ export default function DashboardPage() {
     };
 
     useEffect(() => {
+        const fetchTasks = async () => {
+            const data = await fetchDataDariSupabase<Task>('tasks');
+            setTasks(data);
+        }
         fetchTasks();
     }, []);
 
@@ -81,7 +87,7 @@ export default function DashboardPage() {
 
     return (
         <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
-            <Sidebar isOpen={isSidebarOpen} />
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
             <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
                 <Header
@@ -109,7 +115,15 @@ export default function DashboardPage() {
                         </div>
 
                         {isLoading ? (
-                            <div className="text-center py-20 text-on-surface-variant">Memuat data...</div>
+                            <div className="flex flex-col items-center justify-center py-32">
+                                <LatticeLoader
+                                    status="working"
+                                    label="Memuat Tugas..."
+                                    pattern="orbit"
+                                    color="#dae2fd"
+                                    showTimer={false}
+                                />
+                            </div>
                         ) : filteredTasks.length === 0 ? (
                             <div className="text-center py-20 bg-surface-container-low rounded-2xl border border-outline-variant/10">
                                 <span className="material-symbols-outlined text-5xl text-tertiary mb-3">task_alt</span>

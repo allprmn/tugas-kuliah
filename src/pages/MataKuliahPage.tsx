@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import CourseModal from '../components/CourseModal';
+import LatticeLoader from '../components/ui/LatticeLoader';
 import { supabase } from '../lib/supabaseClient';
 import type { Course } from '../types';
 
@@ -100,7 +101,7 @@ export default function MataKuliahPage() {
 
   return (
     <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
-      <Sidebar isOpen={isSidebarOpen} />
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
         <Header
@@ -190,7 +191,15 @@ export default function MataKuliahPage() {
 
             {/* 3. BAGIAN GRID CARD MATA KULIAH */}
             {isLoading ? (
-              <div className="text-center py-20 text-on-surface-variant">Memuat data mata kuliah...</div>
+              <div className="flex flex-col items-center justify-center py-32">
+                <LatticeLoader
+                  status="working"
+                  label="Memuat Mata Kuliah..."
+                  pattern="orbit"
+                  color="#dae2fd"
+                  showTimer={false}
+                />
+              </div>
             ) : filteredCourses.length === 0 ? (
               <div className="text-center py-20 bg-surface-container-low rounded-2xl border border-outline-variant/10">
                 <span className="material-symbols-outlined text-5xl text-outline mb-3">search_off</span>
@@ -214,7 +223,7 @@ export default function MataKuliahPage() {
                         Teknik Informatika
                       </span>
                       <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        Semester 2024I
+                        Semester 5
                       </span>
                     </div>
 

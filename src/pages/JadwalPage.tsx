@@ -1,18 +1,19 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
+import LatticeLoader from '../components/ui/LatticeLoader';
 import { supabase } from '../lib/supabaseClient';
 import type { Task } from '../types';
 
 export default function JadwalPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(
-    new Date().toLocaleDateString('en-CA') 
+    new Date().toLocaleDateString('en-CA')
   );
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -27,7 +28,7 @@ export default function JadwalPage() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      
+
       const { data } = await supabase
         .from('tasks')
         .select('*')
@@ -70,7 +71,7 @@ export default function JadwalPage() {
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const startDayIndex = firstDay === 0 ? 6 : firstDay - 1;
-    
+
     const days = [];
     for (let i = 0; i < startDayIndex; i++) days.push(null);
     for (let i = 1; i <= daysInMonth; i++) {
@@ -93,27 +94,27 @@ export default function JadwalPage() {
 
   return (
     <div className="bg-background font-body-md text-on-surface antialiased min-h-screen">
-      <Sidebar isOpen={isSidebarOpen} />
-      
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
         <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-        
+
         <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
           <div className="flex flex-col w-full pb-space-xl pt-6">
-            
+
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
               <div>
                 <h1 className="text-3xl font-bold text-on-surface tracking-tight">Jadwal & Kalender</h1>
                 <p className="text-on-surface-variant mt-1">Pantau tenggat waktu tugas kuliahmu.</p>
               </div>
-              
+
               <div className="relative" ref={pickerRef}>
                 <div className="flex items-center gap-4 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20 shadow-sm">
                   <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
                     <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                   </button>
-                  
-                  <button 
+
+                  <button
                     onClick={() => { setPickerYear(currentDate.getFullYear()); setIsPickerOpen(!isPickerOpen); }}
                     className="font-semibold text-on-surface min-w-[140px] text-center flex items-center justify-center gap-1 hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-surface-container-high"
                   >
@@ -142,11 +143,10 @@ export default function JadwalPage() {
                         <button
                           key={month}
                           onClick={() => handleSelectMonth(idx)}
-                          className={`py-2 text-sm font-medium rounded-lg transition-colors ${
-                            idx === currentDate.getMonth() && pickerYear === currentDate.getFullYear()
+                          className={`py-2 text-sm font-medium rounded-lg transition-colors ${idx === currentDate.getMonth() && pickerYear === currentDate.getFullYear()
                               ? 'bg-primary text-on-primary shadow-md'
                               : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
-                          }`}
+                            }`}
                         >
                           {month.substring(0, 3)}
                         </button>
@@ -158,14 +158,22 @@ export default function JadwalPage() {
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
-              
+
               <div className="xl:col-span-8 bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm relative">
                 {isLoading && (
                   <div className="absolute inset-0 bg-surface-container-low/80 z-10 flex items-center justify-center rounded-2xl">
-                    <span className="text-on-surface-variant">Memuat data kalender...</span>
+                    <div className="flex flex-col items-center justify-center py-32">
+                      <LatticeLoader
+                        status="working"
+                        label="Memuat Mata Kuliah..."
+                        pattern="orbit"
+                        color="#dae2fd"
+                        showTimer={false}
+                      />
+                    </div>
                   </div>
                 )}
-                
+
                 <div className="grid grid-cols-7 mb-2">
                   {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(day => (
                     <div key={day} className="text-center font-semibold text-sm text-on-surface-variant py-2">
@@ -173,37 +181,36 @@ export default function JadwalPage() {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="grid grid-cols-7 gap-1">
                   {calendarDays.map((dayObj, index) => {
                     if (!dayObj) return <div key={`empty-${index}`} className="h-24 rounded-xl bg-surface-container-lowest/30"></div>;
-                    
+
                     const isSelected = selectedDate === dayObj.dateString;
                     const tasksOnDate = getTasksForDate(dayObj.dateString);
 
                     return (
-                      <div 
+                      <div
                         key={dayObj.dateString}
                         onClick={() => setSelectedDate(dayObj.dateString)}
                         className={`
                           h-24 rounded-xl p-2 flex flex-col cursor-pointer border transition-all relative
-                          ${isSelected 
-                            ? 'bg-primary-container/10 border-primary/50' 
+                          ${isSelected
+                            ? 'bg-primary-container/10 border-primary/50'
                             : 'bg-surface-container-lowest/30 border-transparent hover:bg-surface-container-highest/40'}
                         `}
                       >
                         <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full mb-1 ${isSelected ? 'bg-primary text-on-primary' : 'text-on-surface'}`}>
                           {dayObj.day}
                         </span>
-                        
+
                         {tasksOnDate.length > 0 && (
                           <div className="mt-auto flex gap-1 flex-wrap">
                             {tasksOnDate.slice(0, 3).map((task, i) => (
-                              <span 
-                                key={i} 
-                                className={`w-2 h-2 rounded-full ${
-                                  isTaskInactive(task) ? 'bg-outline/50' : 'bg-error'
-                                }`}
+                              <span
+                                key={i}
+                                className={`w-2 h-2 rounded-full ${isTaskInactive(task) ? 'bg-outline/50' : 'bg-error'
+                                  }`}
                               ></span>
                             ))}
                             {tasksOnDate.length > 3 && <span className="text-[10px] text-outline">+</span>}
@@ -234,14 +241,12 @@ export default function JadwalPage() {
                       {selectedTasks.map(task => (
                         <div key={task.id} className="p-4 rounded-xl bg-surface-container border border-outline-variant/10 hover:border-outline-variant/30 transition-colors">
                           <div className="flex items-center justify-between mb-2">
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
-                              isTaskInactive(task) ? 'bg-surface-container-high text-outline' : 'bg-error-container text-error'
-                            }`}>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${isTaskInactive(task) ? 'bg-surface-container-high text-outline' : 'bg-error-container text-error'
+                              }`}>
                               {task.course_code}
                             </span>
-                            <span className={`text-sm font-semibold flex items-center gap-1 ${
-                              isTaskInactive(task) ? 'text-outline' : 'text-on-surface-variant'
-                            }`}>
+                            <span className={`text-sm font-semibold flex items-center gap-1 ${isTaskInactive(task) ? 'text-outline' : 'text-on-surface-variant'
+                              }`}>
                               <span className="material-symbols-outlined text-[16px]">schedule</span>
                               23:59
                             </span>
@@ -249,9 +254,8 @@ export default function JadwalPage() {
                           <h3 className={`font-semibold ${isTaskInactive(task) ? 'text-outline line-through' : 'text-on-surface'}`}>
                             {task.title}
                           </h3>
-                          <p className={`text-sm mt-1 capitalize font-medium ${
-                            isTaskInactive(task) ? 'text-outline' : 'text-error'
-                          }`}>
+                          <p className={`text-sm mt-1 capitalize font-medium ${isTaskInactive(task) ? 'text-outline' : 'text-error'
+                            }`}>
                             Status: {task.is_completed ? 'Selesai' : (task.deadline < todayStr ? 'Terlewat' : 'Mendesak')}
                           </p>
                         </div>
