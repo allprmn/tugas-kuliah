@@ -6,13 +6,14 @@ interface ArchiveDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   task: Task | null;
+  onDelete: () => void;
 }
 
-export default function ArchiveDetailModal({ isOpen, onClose, task }: ArchiveDetailModalProps) {
+export default function ArchiveDetailModal({ isOpen, onClose, task, onDelete }: ArchiveDetailModalProps) {
   return (
     <AnimatePresence>
       {isOpen && task && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -21,7 +22,7 @@ export default function ArchiveDetailModal({ isOpen, onClose, task }: ArchiveDet
           onClick={onClose}
         >
           {/* 2. KOTAK MODAL (Animasi Pop-up) */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -30,7 +31,7 @@ export default function ArchiveDetailModal({ isOpen, onClose, task }: ArchiveDet
             onClick={(e) => e.stopPropagation()}
           >
             {/* 3. SPOTLIGHT CARD */}
-            <SpotlightCard 
+            <SpotlightCard
               className="w-full rounded-2xl bg-surface-container-low shadow-2xl p-6 border border-outline-variant/20"
               theme="dark"
               spotlightColor="#b4c5ff"
@@ -53,8 +54,8 @@ export default function ArchiveDetailModal({ isOpen, onClose, task }: ArchiveDet
                     {task.title}
                   </h2>
                 </div>
-                <button 
-                  onClick={onClose} 
+                <button
+                  onClick={onClose}
                   className="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-container-high hover:text-on-surface transition-colors shrink-0 relative z-20"
                 >
                   <span className="material-symbols-outlined">close</span>
@@ -84,17 +85,24 @@ export default function ArchiveDetailModal({ isOpen, onClose, task }: ArchiveDet
                 <div className="flex items-center gap-2 text-sm text-on-surface-variant">
                   <span className="material-symbols-outlined text-[18px]">flag</span>
                   <span>Prioritas:</span>
-                  <span className={`font-semibold ${
-                    task.priority === 'Tinggi' ? 'text-error' :
-                    task.priority === 'Sedang' ? 'text-primary' :
-                    'text-outline'
-                  }`}>{task.priority}</span>
+                  <span className={`font-semibold ${task.priority === 'Tinggi' ? 'text-error' :
+                      task.priority === 'Sedang' ? 'text-primary' :
+                        'text-outline'
+                    }`}>{task.priority}</span>
                 </div>
               </div>
 
               {/* Tombol Tutup */}
-              <div className="mt-8 flex justify-end">
-                <button 
+              <div className="mt-8 flex justify-between items-center border-t border-outline-variant/20 pt-4">
+                <button
+                  onClick={onDelete}
+                  className="px-4 py-2 rounded-xl bg-error-container/20 text-error hover:bg-error-container/40 font-semibold text-sm transition-colors flex items-center gap-2 relative z-20"
+                >
+                  <span className="material-symbols-outlined text-[18px]">delete</span>
+                  Hapus Tugas
+                </button>
+
+                <button
                   onClick={onClose}
                   className="px-6 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-sm transition-colors relative z-20"
                 >

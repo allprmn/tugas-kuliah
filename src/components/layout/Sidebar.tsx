@@ -1,11 +1,19 @@
 import  { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { getProfile, type UserProfile } from '../../utils/profileHelper';
 import { supabase } from '../../lib/supabaseClient';
 
 // Tambahkan onClose pada props
 export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose?: () => void }) {
   const location = useLocation();
   const [activeTaskCount, setActiveTaskCount] = useState(0);
+
+  const [profile, setProfile] = useState<UserProfile>({ name: '', nim: '', avatarUrl: '' });
+   useEffect(() => {
+    setProfile(getProfile());
+    window.addEventListener('profileUpdated', () => setProfile(getProfile()));
+    return () => window.removeEventListener('profileUpdated', () => setProfile(getProfile()));
+  }, []);
 
   const fetchTaskCount = async () => {
     const { count, error } = await supabase
@@ -36,7 +44,6 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose?
     { path: '/mata-kuliah', label: 'Mata Kuliah', icon: 'menu_book' },
     { path: '/jadwal', label: 'Jadwal & Kalender', icon: 'calendar_month' },
     { path: '/arsip', label: 'Arsip Selesai', icon: 'inventory_2' },
-    { path: '/statistik', label: 'Statistik', icon: 'insights' },
   ];
 
   return (
@@ -61,19 +68,15 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose?
         <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden">
 
           {/* === PROFILE SECTION === */}
-          <div className="h-20 flex items-center px-4 mt-2">
+          <Link to="/profile" className="h-20 flex items-center px-4 mt-2 hover:bg-surface-container-high/50 rounded-xl transition-colors cursor-pointer">
             <div className="flex items-center gap-3 w-full">
-              <img
-                src="https://ui-avatars.com/api/?name=Aldi+Pramana&background=2563eb&color=fff"
-                alt="Profile"
-                className="w-10 h-10 rounded-full shrink-0 object-cover ring-2 ring-primary/20"
-              />
+              <img src={profile.avatarUrl} alt="Profile" className="w-10 h-10 rounded-full shrink-0 object-cover ring-2 ring-primary/20" />
               <div className="flex flex-col whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
-                <span className="font-label-md text-label-md text-on-surface font-semibold">Aldi Pramana</span>
-                <span className="font-label-sm text-label-sm text-outline">1247050031</span>
+                <span className="font-label-md text-label-md text-on-surface font-semibold">{profile.name}</span>
+                <span className="font-label-sm text-label-sm text-outline">{profile.nim}</span>
               </div>
             </div>
-          </div>
+          </Link>
 
           {/* === SEARCH BAR === */}
           <div className="px-4 mb-4 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 overflow-hidden">
@@ -112,9 +115,13 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose?
           {/* === BOTTOM ACTION BUTTONS === */}
           <div className="p-4 mt-auto">
             <div className="grid grid-cols-2 gap-2">
-              <button className="flex items-center justify-center h-10 w-full rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors">
+              <Link 
+                to="/profile" 
+                className="flex items-center justify-center h-10 w-full rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors cursor-pointer"
+                title="Pengaturan Profil"
+              >
                 <span className="material-symbols-outlined text-[20px]">settings</span>
-              </button>
+              </Link>
               <button className="flex items-center justify-center h-10 w-full rounded-xl bg-surface-container hover:bg-error/20 hover:text-error text-on-surface-variant transition-colors">
                 <span className="material-symbols-outlined text-[20px]">logout</span>
               </button>

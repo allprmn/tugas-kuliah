@@ -3,6 +3,8 @@ import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import TaskModal from '../components/TaskModal';
 import LatticeLoader from '../components/ui/LatticeLoader';
+import ConfirmCompleteModal from '../components/ConfirmCompleteModal';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import { supabase } from '../lib/supabaseClient';
 import type { Task } from '../types';
 
@@ -13,10 +15,13 @@ export default function DashboardPage() {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | null>(null);
+    const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [taskToComplete, setTaskToComplete] = useState<Task | null>(null);
+    const [isCompleting, setIsCompleting] = useState(false);
 
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Fungsi utama untuk mengambil data (Hanya tugas yang belum selesai)
     const fetchTasks = async () => {
         setIsLoading(true);
         const { data, error } = await supabase
@@ -32,14 +37,31 @@ export default function DashboardPage() {
         setIsLoading(false);
     };
 
-    // Panggil fungsi utama saat pertama kali dimuat
     useEffect(() => {
         fetchTasks();
     }, []);
 
-    const handleCompleteTask = async (id: string) => {
-        const { error } = await supabase.from('tasks').update({ is_completed: true }).eq('id', id);
-        if (!error) fetchTasks();
+    const openCompleteModal = (task: Task) => {
+        setTaskToComplete(task);
+    };
+
+    const executeCompleteTask = async () => {
+        if (!taskToComplete) return;
+        
+        setIsCompleting(true);
+        const { error } = await supabase
+            .from('tasks')
+            .update({ is_completed: true })
+            .eq('id', taskToComplete.id);
+            
+        setIsCompleting(false);
+
+        if (!error) {
+            setTaskToComplete(null); 
+            fetchTasks();
+        } else {
+            alert('Gagal menyelesaikan tugas');
+        }
     };
 
     const handleOpenEdit = (task: Task) => {
@@ -52,14 +74,26 @@ export default function DashboardPage() {
         setIsModalOpen(true);
     };
 
-    const handleDeleteTask = async (id: string) => {
-        if (window.confirm('Yakin ingin menghapus tugas ini?')) {
-            const { error } = await supabase.from('tasks').delete().eq('id', id);
-            if (!error) {
-                fetchTasks();
-            } else {
-                alert('Gagal menghapus tugas');
-            }
+    const openDeleteModal = (task: Task) => {
+        setTaskToDelete(task);
+    };
+
+    const executeDeleteTask = async () => {
+        if (!taskToDelete) return;
+        
+        setIsDeleting(true);
+        const { error } = await supabase
+            .from('tasks')
+            .delete()
+            .eq('id', taskToDelete.id);
+            
+        setIsDeleting(false);
+
+        if (!error) {
+            setTaskToDelete(null);
+            fetchTasks();
+        } else {
+            alert('Gagal menghapus tugas');
         }
     };
 
@@ -157,7 +191,7 @@ export default function DashboardPage() {
 
                                                         {/* Tombol Hapus (BARU) */}
                                                         <button
-                                                            onClick={() => handleDeleteTask(task.id)}
+                                                            onClick={() => openDeleteModal(task)}
                                                             className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-error-container/20 hover:text-error transition-colors"
                                                         >
                                                             <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -183,7 +217,7 @@ export default function DashboardPage() {
                                                 </div>
 
                                                 <button
-                                                    onClick={() => handleCompleteTask(task.id)}
+                                                    onClick={() => openCompleteModal(task)}
                                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container/10 text-primary hover:bg-primary hover:text-on-primary font-semibold text-sm transition-all"
                                                 >
                                                     <span className="material-symbols-outlined text-[18px]">check_circle</span>
@@ -205,6 +239,22 @@ export default function DashboardPage() {
                 onClose={() => setIsModalOpen(false)}
                 onTaskAdded={fetchTasks}
                 taskToEdit={editingTask}
+            />
+
+            <ConfirmCompleteModal
+                isOpen={!!taskToComplete}
+                onClose={() => setTaskToComplete(null)}
+                onConfirm={executeCompleteTask}
+                task={taskToComplete}
+                isLoading={isCompleting}
+            />
+
+            <ConfirmDeleteModal
+                isOpen={!!taskToDelete}
+                onClose={() => setTaskToDelete(null)}
+                onConfirm={executeDeleteTask}
+                task={taskToDelete}
+                isLoading={isDeleting}
             />
         </div>
     );

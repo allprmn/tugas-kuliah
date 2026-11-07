@@ -1,3 +1,6 @@
+import { getProfile, type UserProfile } from '../../utils/profileHelper';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 export default function Header({ 
  onToggleSidebar, 
   searchQuery = '', 
@@ -7,6 +10,14 @@ export default function Header({
   searchQuery?: string, 
   setSearchQuery?: (val: string) => void 
 }) {
+
+  const [profile, setProfile] = useState<UserProfile>({ name: '', nim: '', avatarUrl: '' });
+
+  useEffect(() => {
+    setProfile(getProfile());
+    window.addEventListener('profileUpdated', () => setProfile(getProfile()));
+    return () => window.removeEventListener('profileUpdated', () => setProfile(getProfile()));
+  }, []);
   return (
     <header className="fixed top-4 right-4 left-4 md:left-[112px] h-16 z-40 flex items-center justify-between px-4 md:px-6 rounded-2xl bg-surface-container/70 backdrop-blur-xl border border-outline-variant/20 shadow-lg transition-all duration-300">
       <div className="flex items-center gap-3 flex-1 max-w-xl">
@@ -38,31 +49,27 @@ export default function Header({
         </div>
 
         {/* Tombol Notifikasi */}
-        <button 
+        <Link 
+          to="/notifications"
           aria-label="Pemberitahuan" 
-          className="relative w-9 h-9 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" 
-          type="button"
+          className="relative w-9 h-9 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors cursor-pointer" 
         >
           <span className="material-symbols-outlined text-[20px]">notifications</span>
           <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-error border-2 border-surface-container"></span>
-        </button>
+        </Link>
 
         {/* Divider */}
         <div className="hidden md:block w-px h-6 bg-outline-variant/30"></div>
 
         {/* Profil Pengguna */}
-        <button className="flex items-center gap-2 md:gap-3 pl-1 hover:opacity-80 transition-opacity">
-          <img 
-            alt="Profile" 
-            className="w-9 h-9 rounded-xl object-cover bg-surface-container-highest border border-outline-variant/20" 
-            src="https://ui-avatars.com/api/?name=Aldi+Pramana&background=2563eb&color=fff" 
-          />
+       <Link to="/profile" className="flex items-center gap-2 md:gap-3 pl-1 hover:opacity-80 transition-opacity cursor-pointer">
+          <img alt="Profile" className="w-9 h-9 rounded-xl object-cover bg-surface-container-highest border border-outline-variant/20" src={profile.avatarUrl} />
           <div className="hidden lg:flex flex-col text-left">
-            <span className="font-label-md text-label-md text-on-surface font-semibold leading-tight">Aldi Pramana</span>
-            <span className="font-label-sm text-label-sm text-outline leading-tight">1247050031</span>
+            <span className="font-label-md text-label-md text-on-surface font-semibold leading-tight">{profile.name}</span>
+            <span className="font-label-sm text-label-sm text-outline leading-tight">{profile.nim}</span>
           </div>
           <span className="material-symbols-outlined text-outline text-[18px] hidden lg:block">expand_more</span>
-        </button>
+        </Link>
 
       </div>
     </header>

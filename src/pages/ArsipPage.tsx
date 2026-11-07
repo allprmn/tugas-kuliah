@@ -3,16 +3,19 @@ import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import AnimatedList from '../components/ui/AnimatedList';
 import LatticeLoader from '../components/ui/LatticeLoader';
+import ArchiveDetailModal from '../components/ArchiveDetailModal';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import { supabase } from '../lib/supabaseClient';
 import type { Task } from '../types';
-import ArchiveDetailModal from '../components/ArchiveDetailModal';
+
 
 export default function ArsipPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [archives, setArchives] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // State pencarian yang terhubung ke Header
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,13 +44,31 @@ export default function ArsipPage() {
     (task.course_code || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // --- KONVERSI DATA UNTUK ANIMATED LIST ---
-  // AnimatedList membutuhkan format { title, description, meta }
+  const handleDeleteArchive = async () => {
+    if (!taskToDelete) return;
+    setIsDeleting(true);
+
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskToDelete.id);
+
+    setIsDeleting(false);
+
+    if (error) {
+      alert('Gagal menghapus tugas: ' + error.message);
+    } else {
+      setTaskToDelete(null);
+      setSelectedTask(null); 
+      window.location.reload(); 
+    }
+  };
+
   const listItems = filteredArchives.map((task) => ({
     title: task.title,
     description: `${task.course} (${task.course_code})`,
     meta: task.deadline,
-    // Kita simpan data asli jika nanti butuh fungsi onClick detail
+    
     originalData: task
   }));
 
@@ -124,10 +145,19 @@ export default function ArsipPage() {
           </div>
         </main>
       </div>
-      <ArchiveDetailModal
-        isOpen={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
-        task={selectedTask}
+      <ArchiveDetailModal 
+        isOpen={!!selectedTask} 
+        onClose={() => setSelectedTask(null)} 
+        task={selectedTask} 
+        onDelete={() => setTaskToDelete(selectedTask)}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={!!taskToDelete}
+        onClose={() => setTaskToDelete(null)}
+        onConfirm={handleDeleteArchive}
+        task={taskToDelete}
+        isLoading={isDeleting}
       />
     </div>
   );
