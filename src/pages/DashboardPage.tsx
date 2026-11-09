@@ -5,6 +5,7 @@ import TaskModal from '../components/TaskModal';
 import LatticeLoader from '../components/ui/LatticeLoader';
 import ConfirmCompleteModal from '../components/ConfirmCompleteModal';
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
+import SpotlightCard from '../components/ui/SpotlightCard';
 import { supabase } from '../lib/supabaseClient';
 import type { Task } from '../types';
 
@@ -166,7 +167,8 @@ export default function DashboardPage() {
                                     const remaining = getDaysRemaining(task.deadline);
 
                                     return (
-                                        <div key={task.id} className="relative flex flex-col justify-between p-6 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all duration-300 border border-outline-variant/10 shadow-sm group">
+                                    <SpotlightCard 
+                                        key={task.id} className="relative flex flex-col justify-between p-6 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all duration-300 border border-outline-variant/10 shadow-sm group">
                                             <div>
                                                 <div className="flex items-start justify-between mb-4">
                                                     <div className="flex gap-2">
@@ -224,7 +226,7 @@ export default function DashboardPage() {
                                                     Selesai
                                                 </button>
                                             </div>
-                                        </div>
+                                        </SpotlightCard>
                                     );
                                 })}
                             </div>

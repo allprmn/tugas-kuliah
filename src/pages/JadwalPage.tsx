@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import LatticeLoader from '../components/ui/LatticeLoader';
+import SpotlightCard from '../components/ui/SpotlightCard';
 import { supabase } from '../lib/supabaseClient';
 import type { Task } from '../types';
 
@@ -192,7 +193,7 @@ export default function JadwalPage() {
                     const tasksOnDate = getTasksForDate(dayObj.dateString);
 
                     return (
-                      <div
+                      <SpotlightCard 
                         key={dayObj.dateString}
                         onClick={() => setSelectedDate(dayObj.dateString)}
                         className={`
@@ -218,14 +219,15 @@ export default function JadwalPage() {
                             {tasksOnDate.length > 3 && <span className="text-[10px] text-outline">+</span>}
                           </div>
                         )}
-                      </div>
+                     </SpotlightCard>
                     );
                   })}
                 </div>
               </div>
 
               <div className="xl:col-span-4 flex flex-col gap-4">
-                <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
+                <SpotlightCard 
+                 className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-on-surface">
                       {selectedDate ? new Date(selectedDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Pilih Tanggal'}
@@ -264,15 +266,15 @@ export default function JadwalPage() {
                       ))}
                     </div>
                   )}
-                </div>
+                </SpotlightCard>
 
-                <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
+                <SpotlightCard className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
                   <h3 className="font-semibold text-on-surface mb-4">Keterangan</h3>
                   <div className="flex flex-col gap-2 text-sm text-on-surface-variant">
                     <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-error"></span> Deadline Aktif (Belum Selesai)</div>
                     <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-outline/50"></span> Deadline Selesai / Terlewat</div>
                   </div>
-                </div>
+                </SpotlightCard>
               </div>
 
             </div>

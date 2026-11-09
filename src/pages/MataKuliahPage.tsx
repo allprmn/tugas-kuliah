@@ -3,6 +3,7 @@ import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import CourseModal from '../components/CourseModal';
 import LatticeLoader from '../components/ui/LatticeLoader';
+import SpotlightCard from '../components/ui/SpotlightCard';
 import { supabase } from '../lib/supabaseClient';
 import type { Course } from '../types';
 
@@ -208,7 +209,8 @@ export default function MataKuliahPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCourses.map((course) => (
-                  <div key={course.id} className="relative bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm hover:border-primary/30 transition-all group flex flex-col h-full">
+                  <SpotlightCard
+                  key={course.id} className="relative bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm hover:border-primary/30 transition-all group flex flex-col h-full">
 
                     <button
                       onClick={() => handleDelete(course.id)}
@@ -257,7 +259,7 @@ export default function MataKuliahPage() {
                       </div>
                     </div>
 
-                  </div>
+                   </SpotlightCard>
                 ))}
               </div>
             )}
