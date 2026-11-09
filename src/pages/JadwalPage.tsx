@@ -98,8 +98,8 @@ export default function JadwalPage() {
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
-         <Header 
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+        <Header
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
 
         <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
@@ -112,7 +112,7 @@ export default function JadwalPage() {
               </div>
 
               <div className="relative" ref={pickerRef}>
-                <div className="flex items-center gap-4 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20 shadow-sm">
+                <div className="flex items-center gap-1 sm:gap-4 bg-surface-container-low p-1 sm:p-1.5 rounded-xl border border-outline-variant/20 shadow-sm">
                   <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
                     <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                   </button>
@@ -147,8 +147,8 @@ export default function JadwalPage() {
                           key={month}
                           onClick={() => handleSelectMonth(idx)}
                           className={`py-2 text-sm font-medium rounded-lg transition-colors ${idx === currentDate.getMonth() && pickerYear === currentDate.getFullYear()
-                              ? 'bg-primary text-on-primary shadow-md'
-                              : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                            ? 'bg-primary text-on-primary shadow-md'
+                            : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
                             }`}
                         >
                           {month.substring(0, 3)}
@@ -162,7 +162,7 @@ export default function JadwalPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
 
-              <div className="xl:col-span-8 bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm relative">
+              <div className="xl:col-span-8 bg-surface-container-low rounded-2xl p-2 sm:p-6 border border-outline-variant/10 shadow-sm relative">
                 {isLoading && (
                   <div className="absolute inset-0 bg-surface-container-low/80 z-10 flex items-center justify-center rounded-2xl">
                     <div className="flex flex-col items-center justify-center py-32">
@@ -177,57 +177,61 @@ export default function JadwalPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-7 mb-2">
+                <div className="grid grid-cols-7 mb-2 mt-2">
                   {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(day => (
-                    <div key={day} className="text-center font-semibold text-sm text-on-surface-variant py-2">
+                    <div key={day} className="text-center font-semibold text-[10px] sm:text-sm text-on-surface-variant py-1 sm:py-2">
                       {day}
                     </div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-1 sm:gap-2">
                   {calendarDays.map((dayObj, index) => {
-                    if (!dayObj) return <div key={`empty-${index}`} className="h-24 rounded-xl bg-surface-container-lowest/30"></div>;
+                    if (!dayObj) return <div key={`empty-${index}`} className="h-14 sm:h-24 rounded-lg sm:rounded-xl bg-surface-container-lowest/30"></div>;
 
                     const isSelected = selectedDate === dayObj.dateString;
                     const tasksOnDate = getTasksForDate(dayObj.dateString);
 
                     return (
-                      <SpotlightCard 
+                      <SpotlightCard
                         key={dayObj.dateString}
                         onClick={() => setSelectedDate(dayObj.dateString)}
                         className={`
-                          h-24 rounded-xl p-2 flex flex-col cursor-pointer border transition-all relative
-                          ${isSelected
+          h-14 sm:h-24 rounded-lg sm:rounded-xl p-0.5 sm:p-2 flex flex-col items-center justify-center sm:items-start sm:justify-start cursor-pointer border transition-all relative
+          ${isSelected
                             ? 'bg-primary-container/10 border-primary/50'
                             : 'bg-surface-container-lowest/30 border-transparent hover:bg-surface-container-highest/40'}
-                        `}
+        `}
+                        theme="dark"
+                        spotlightColor={isSelected ? "#b4c5ff" : "#434655"}
+                        spotlightSize={150}
+                        intensity={0.2}
+                        flare={false}
                       >
-                        <span className={`text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full mb-1 ${isSelected ? 'bg-primary text-on-primary' : 'text-on-surface'}`}>
+                        <span className={`text-xs sm:text-sm font-semibold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full sm:mb-1 ${isSelected ? 'bg-primary text-on-primary' : 'text-on-surface'}`}>
                           {dayObj.day}
                         </span>
 
                         {tasksOnDate.length > 0 && (
-                          <div className="mt-auto flex gap-1 flex-wrap">
+                          <div className="mt-0.5 sm:mt-auto flex gap-0.5 sm:gap-1 flex-wrap justify-center sm:justify-start">
                             {tasksOnDate.slice(0, 3).map((task, i) => (
                               <span
                                 key={i}
-                                className={`w-2 h-2 rounded-full ${isTaskInactive(task) ? 'bg-outline/50' : 'bg-error'
-                                  }`}
+                                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isTaskInactive(task) ? 'bg-outline/50' : 'bg-error'}`}
                               ></span>
                             ))}
-                            {tasksOnDate.length > 3 && <span className="text-[10px] text-outline">+</span>}
+                            {tasksOnDate.length > 3 && <span className="text-[8px] sm:text-[10px] text-outline">+</span>}
                           </div>
                         )}
-                     </SpotlightCard>
+                      </SpotlightCard>
                     );
                   })}
                 </div>
               </div>
 
               <div className="xl:col-span-4 flex flex-col gap-4">
-                <SpotlightCard 
-                 className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
+                <SpotlightCard
+                  className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-on-surface">
                       {selectedDate ? new Date(selectedDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Pilih Tanggal'}
