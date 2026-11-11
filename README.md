@@ -1,8 +1,8 @@
-# Aplikasi Manajemen Tugas Kuliah (TugasKuliah)
+# Aplikasi Manajemen Tugas Kuliah
 
 Aplikasi web full-stack untuk mengelola daftar tugas kuliah, jadwal, dan arsip. Dibangun menggunakan React, TypeScript, Vite, dan Supabase sebagai database.
 
-## Penjelasan Teknis (Sesuai Ketentuan Tugas)
+## Penjelasan Teknis
 
 Dokumen ini menjelaskan penggunaan teknologi utama dalam pengembangan aplikasi ini, mulai dari manajemen versi hingga proses *build*.
 
