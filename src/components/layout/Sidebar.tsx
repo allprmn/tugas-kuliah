@@ -34,8 +34,8 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose?
   const getLinkClass = (path: string) => {
     const isActive = location.pathname === path;
     return isActive
-      ? "bg-blue-500/15 text-blue-700 font-semibold border border-blue-500/20 shadow-sm" // Efek kaca aktif (biru)
-      : "text-slate-600 hover:bg-white/50 hover:text-slate-900 border border-transparent"; // Efek hover kaca
+      ? "bg-blue-500/15 text-blue-700 font-semibold border border-blue-500/20 shadow-sm"
+      : "text-slate-600 hover:bg-white/50 hover:text-slate-900 border border-transparent";
   };
 
   const menuItems = [
@@ -54,7 +54,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose?
         onClick={onClose} 
       />
 
-      {/* LIQUID GLASS SIDEBAR */}
+      {/* LIQUID GLASS SIDEBAR (Murni Tailwind) */}
       <aside
         className={`
           fixed left-0 top-0 h-full w-64 
@@ -98,18 +98,32 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose?
           <nav className="flex flex-col gap-1 px-3 flex-1">
             {menuItems.map((item) => {
               const isExt = item.isExternal;
-              const Tag = isExt ? 'a' : Link;
-              const linkProps = isExt 
-                ? { href: item.href, target: '_blank', rel: 'noopener noreferrer' } 
-                : { to: item.path };
+              const sharedClasses = `flex items-center gap-4 px-3 py-3 rounded-xl transition-all font-label-lg text-label-lg whitespace-nowrap`;
 
+              // 1. Render untuk Link Eksternal (Landing Page)
+              if (isExt) {
+                return (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${sharedClasses} text-slate-600 hover:bg-white/50 hover:text-slate-900 border border-transparent`}
+                  >
+                    <span className="material-symbols-outlined text-[24px] shrink-0">{item.icon}</span>
+                    <span className="flex-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 font-medium">
+                      {item.label}
+                    </span>
+                  </a>
+                );
+              }
+
+              // 2. Render untuk Link Internal (React Router)
               return (
-                <Tag
-                  key={isExt ? item.label : item.path}
-                  {...linkProps}
-                  className={`flex items-center gap-4 px-3 py-3 rounded-xl transition-all font-label-lg text-label-lg whitespace-nowrap ${
-                    !isExt ? getLinkClass(item.path) : 'text-slate-600 hover:bg-white/50 hover:text-slate-900 border border-transparent'
-                  }`}
+                <Link
+                  key={item.path || item.label}
+                  to={item.path || '/'}
+                  className={`${sharedClasses} ${getLinkClass(item.path || '')}`}
                 >
                   <span className="material-symbols-outlined text-[24px] shrink-0">
                     {item.icon}
@@ -125,7 +139,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean, onClose?
                       {item.badge}
                     </span>
                   )}
-                </Tag>
+                </Link>
               );
             })}
           </nav>
