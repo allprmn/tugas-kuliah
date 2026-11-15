@@ -8,7 +8,6 @@ import type { Task } from '../types';
 
 export default function JadwalPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,7 +28,6 @@ export default function JadwalPage() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-
       const { data } = await supabase
         .from('tasks')
         .select('*')
@@ -82,7 +80,6 @@ export default function JadwalPage() {
     return days;
   }, [currentDate]);
 
-
   const getTasksForDate = (dateString: string) => {
     return tasks.filter(task => task.deadline === dateString);
   };
@@ -98,57 +95,54 @@ export default function JadwalPage() {
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
-        <Header
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        />
+        <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-        <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
+        <main className="relative w-full pt-24 bg-background min-h-screen px-gutter animate-page-transition">
           <div className="flex flex-col w-full pb-space-xl pt-6">
 
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
               <div>
-                <h1 className="text-3xl font-bold text-on-surface tracking-tight">Jadwal & Kalender</h1>
-                <p className="text-on-surface-variant mt-1">Pantau tenggat waktu tugas kuliahmu.</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Jadwal & Kalender</h1>
+                <p className="text-slate-500 mt-1 text-sm md:text-base">Pantau tenggat waktu tugas kuliahmu.</p>
               </div>
 
+              {/* Tombol Pilih Bulan */}
               <div className="relative" ref={pickerRef}>
-                <div className="flex items-center gap-1 sm:gap-4 bg-surface-container-low p-1 sm:p-1.5 rounded-xl border border-outline-variant/20 shadow-sm">
-                  <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
+                <div className="flex items-center gap-1 sm:gap-4 bg-white/60 backdrop-blur-md p-1 sm:p-1.5 rounded-xl border border-white/50 shadow-sm">
+                  <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors text-slate-600">
                     <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                   </button>
-
                   <button
                     onClick={() => { setPickerYear(currentDate.getFullYear()); setIsPickerOpen(!isPickerOpen); }}
-                    className="font-semibold text-on-surface min-w-[140px] text-center flex items-center justify-center gap-1 hover:text-primary transition-colors px-2 py-1 rounded-md hover:bg-surface-container-high"
+                    className="font-semibold text-slate-800 min-w-[120px] text-center flex items-center justify-center gap-1 hover:text-blue-600 transition-colors px-2 py-1 rounded-md hover:bg-slate-100 text-sm"
                   >
                     {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                     <span className="material-symbols-outlined text-[18px]">expand_more</span>
                   </button>
-
-                  <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors">
+                  <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors text-slate-600">
                     <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                   </button>
                 </div>
 
                 {isPickerOpen && (
-                  <div className="absolute top-full mt-2 right-0 z-50 w-72 bg-surface-container-low rounded-xl shadow-xl border border-outline-variant/20 p-4 animate-in fade-in zoom-in-95 duration-200">
-                    <div className="flex items-center justify-between mb-4 bg-surface-container rounded-lg p-1">
-                      <button onClick={() => changePickerYear(-1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface-container-high text-on-surface">
+                  <div className="absolute top-full mt-2 right-0 z-50 w-64 bg-white rounded-xl shadow-xl border border-slate-200 p-4 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="flex items-center justify-between mb-4 bg-slate-100 rounded-lg p-1">
+                      <button onClick={() => changePickerYear(-1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white text-slate-600">
                         <span className="material-symbols-outlined text-[18px]">chevron_left</span>
                       </button>
-                      <span className="font-semibold text-on-surface">{pickerYear}</span>
-                      <button onClick={() => changePickerYear(1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-surface-container-high text-on-surface">
+                      <span className="font-semibold text-slate-800">{pickerYear}</span>
+                      <button onClick={() => changePickerYear(1)} className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white text-slate-600">
                         <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                       </button>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1">
                       {monthNames.map((month, idx) => (
                         <button
                           key={month}
                           onClick={() => handleSelectMonth(idx)}
-                          className={`py-2 text-sm font-medium rounded-lg transition-colors ${idx === currentDate.getMonth() && pickerYear === currentDate.getFullYear()
-                            ? 'bg-primary text-on-primary shadow-md'
-                            : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'
+                          className={`py-2 text-xs font-medium rounded-lg transition-colors ${idx === currentDate.getMonth() && pickerYear === currentDate.getFullYear()
+                            ? 'bg-blue-600 text-white shadow-md'
+                            : 'text-slate-600 hover:bg-slate-100'
                             }`}
                         >
                           {month.substring(0, 3)}
@@ -162,24 +156,19 @@ export default function JadwalPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
 
-              <div className="xl:col-span-8 bg-surface-container-low rounded-2xl p-2 sm:p-6 border border-outline-variant/10 shadow-sm relative">
+              {/* KALENDER KIRI */}
+              <div className="xl:col-span-8 bg-white rounded-2xl p-3 sm:p-6 border border-slate-200 shadow-sm relative">
                 {isLoading && (
-                  <div className="absolute inset-0 bg-surface-container-low/80 z-10 flex items-center justify-center rounded-2xl">
+                  <div className="absolute inset-0 bg-white/80 z-10 flex items-center justify-center rounded-2xl">
                     <div className="flex flex-col items-center justify-center py-32">
-                      <LatticeLoader
-                        status="working"
-                        label="Memuat Mata Kuliah..."
-                        pattern="orbit"
-                        color="#dae2fd"
-                        showTimer={false}
-                      />
+                      <LatticeLoader status="working" label="Memuat..." pattern="orbit" color="#2563eb" showTimer={false} />
                     </div>
                   </div>
                 )}
 
-                <div className="grid grid-cols-7 mb-2 mt-2">
+                <div className="grid grid-cols-7 mb-2 mt-1">
                   {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map(day => (
-                    <div key={day} className="text-center font-semibold text-[10px] sm:text-sm text-on-surface-variant py-1 sm:py-2">
+                    <div key={day} className="text-center font-semibold text-[10px] sm:text-xs text-slate-400 py-1">
                       {day}
                     </div>
                   ))}
@@ -187,83 +176,79 @@ export default function JadwalPage() {
 
                 <div className="grid grid-cols-7 gap-1 sm:gap-2">
                   {calendarDays.map((dayObj, index) => {
-                    if (!dayObj) return <div key={`empty-${index}`} className="h-14 sm:h-24 rounded-lg sm:rounded-xl bg-surface-container-lowest/30"></div>;
+                    if (!dayObj) return <div key={`empty-${index}`} className="h-12 sm:h-20 md:h-24 rounded-lg sm:rounded-xl bg-slate-50/50"></div>;
 
                     const isSelected = selectedDate === dayObj.dateString;
                     const tasksOnDate = getTasksForDate(dayObj.dateString);
 
                     return (
-                      <SpotlightCard
+      
+                      <div
                         key={dayObj.dateString}
                         onClick={() => setSelectedDate(dayObj.dateString)}
                         className={`
-          h-14 sm:h-24 rounded-lg sm:rounded-xl p-0.5 sm:p-2 flex flex-col items-center justify-center sm:items-start sm:justify-start cursor-pointer border transition-all relative
-          ${isSelected
-                            ? 'bg-primary-container/10 border-primary/50'
-                            : 'bg-surface-container-lowest/30 border-transparent hover:bg-surface-container-highest/40'}
-        `}
-                        theme="dark"
-                        spotlightColor={isSelected ? "#b4c5ff" : "#434655"}
-                        spotlightSize={150}
-                        intensity={0.2}
-                        flare={false}
+                          h-12 sm:h-20 md:h-24 rounded-lg sm:rounded-xl p-1 flex flex-col items-center sm:items-start justify-between cursor-pointer border transition-all relative
+                          ${isSelected
+                            ? 'bg-blue-50 border-blue-400 shadow-sm'
+                            : 'bg-white border-slate-100 hover:bg-slate-50'}
+                        `}
                       >
-                        <span className={`text-xs sm:text-sm font-semibold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full sm:mb-1 ${isSelected ? 'bg-primary text-on-primary' : 'text-on-surface'}`}>
+                        <span className={`text-xs sm:text-sm font-semibold w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full ${isSelected ? 'bg-blue-600 text-white shadow-md' : 'text-slate-700'}`}>
                           {dayObj.day}
                         </span>
 
                         {tasksOnDate.length > 0 && (
-                          <div className="mt-0.5 sm:mt-auto flex gap-0.5 sm:gap-1 flex-wrap justify-center sm:justify-start">
+                          <div className="flex gap-0.5 sm:gap-1 flex-wrap justify-center sm:justify-start w-full mt-auto">
                             {tasksOnDate.slice(0, 3).map((task, i) => (
                               <span
                                 key={i}
-                                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isTaskInactive(task) ? 'bg-outline/50' : 'bg-error'}`}
+                                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isTaskInactive(task) ? 'bg-slate-300' : 'bg-red-500'}`}
                               ></span>
                             ))}
-                            {tasksOnDate.length > 3 && <span className="text-[8px] sm:text-[10px] text-outline">+</span>}
+                            {tasksOnDate.length > 3 && <span className="text-[8px] text-slate-400">+</span>}
                           </div>
                         )}
-                      </SpotlightCard>
+                      </div>
                     );
                   })}
                 </div>
               </div>
 
+              {/* PANEL KANAN (AGENDA & KETERANGAN) */}
               <div className="xl:col-span-4 flex flex-col gap-4">
                 <SpotlightCard
-                  className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-on-surface">
+                  className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm overflow-hidden"
+                  theme="light"
+                  spotlightColor="rgba(125, 211, 252, 0.4)"
+                  intensity={0.3}>
+                  <div className="flex items-center justify-between mb-4 relative z-10">
+                    <h2 className="text-lg font-bold text-slate-900">
                       {selectedDate ? new Date(selectedDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Pilih Tanggal'}
                     </h2>
-                    <span className="material-symbols-outlined text-outline">event_note</span>
+                    <span className="material-symbols-outlined text-slate-400">event_note</span>
                   </div>
 
                   {selectedTasks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-10 text-center opacity-60">
-                      <span className="material-symbols-outlined text-4xl mb-2">free_cancellation</span>
-                      <p className="text-on-surface-variant">Tidak ada deadline tugas di tanggal ini.</p>
+                    <div className="flex flex-col items-center justify-center py-8 text-center relative z-10">
+                      <span className="material-symbols-outlined text-4xl mb-2 text-slate-300">free_cancellation</span>
+                      <p className="text-slate-500 text-sm">Tidak ada deadline di tanggal ini.</p>
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 relative z-10">
                       {selectedTasks.map(task => (
-                        <div key={task.id} className="p-4 rounded-xl bg-surface-container border border-outline-variant/10 hover:border-outline-variant/30 transition-colors">
+                        <div key={task.id} className="p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-colors">
                           <div className="flex items-center justify-between mb-2">
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${isTaskInactive(task) ? 'bg-surface-container-high text-outline' : 'bg-error-container text-error'
-                              }`}>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isTaskInactive(task) ? 'bg-slate-200 text-slate-500' : 'bg-red-100 text-red-600'}`}>
                               {task.course_code}
                             </span>
-                            <span className={`text-sm font-semibold flex items-center gap-1 ${isTaskInactive(task) ? 'text-outline' : 'text-on-surface-variant'
-                              }`}>
-                              <span className="material-symbols-outlined text-[16px]">schedule</span>
-                              23:59
+                            <span className={`text-xs font-semibold flex items-center gap-1 ${isTaskInactive(task) ? 'text-slate-400' : 'text-slate-600'}`}>
+                              <span className="material-symbols-outlined text-[14px]">schedule</span> 23:59
                             </span>
                           </div>
-                          <h3 className={`font-semibold ${isTaskInactive(task) ? 'text-outline line-through' : 'text-on-surface'}`}>
+                          <h3 className={`text-sm font-semibold ${isTaskInactive(task) ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
                             {task.title}
                           </h3>
-                          <p className={`text-sm mt-1 capitalize font-medium ${isTaskInactive(task) ? 'text-outline' : 'text-error'
-                            }`}>
+                          <p className={`text-xs mt-1 font-medium ${isTaskInactive(task) ? 'text-slate-400' : 'text-red-500'}`}>
                             Status: {task.is_completed ? 'Selesai' : (task.deadline < todayStr ? 'Terlewat' : 'Mendesak')}
                           </p>
                         </div>
@@ -272,11 +257,15 @@ export default function JadwalPage() {
                   )}
                 </SpotlightCard>
 
-                <SpotlightCard className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
-                  <h3 className="font-semibold text-on-surface mb-4">Keterangan</h3>
-                  <div className="flex flex-col gap-2 text-sm text-on-surface-variant">
-                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-error"></span> Deadline Aktif (Belum Selesai)</div>
-                    <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-outline/50"></span> Deadline Selesai / Terlewat</div>
+                <SpotlightCard 
+                  className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm"
+                  theme="light"
+                  spotlightColor="rgba(125, 211, 252, 0.4)"
+                  intensity={0.3}>
+                  <h3 className="font-semibold text-slate-900 mb-3 text-sm relative z-10">Keterangan</h3>
+                  <div className="flex flex-col gap-2 text-xs text-slate-600 relative z-10">
+                    <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> Deadline Aktif</div>
+                    <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span> Selesai / Terlewat</div>
                   </div>
                 </SpotlightCard>
               </div>

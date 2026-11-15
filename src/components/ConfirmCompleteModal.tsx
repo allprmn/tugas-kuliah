@@ -38,7 +38,7 @@ export default function ConfirmCompleteModal({
           >
             <SpotlightCard 
               className="w-full rounded-2xl bg-surface-container-low shadow-2xl p-6 border border-outline-variant/20"
-              theme="dark"
+              theme="light"
               spotlightColor="#b4c5ff"
               intensity={0.15}
               flare
@@ -49,9 +49,7 @@ export default function ConfirmCompleteModal({
                   <span className="material-symbols-outlined text-[32px]">task_alt</span>
                 </div>
 
-                <h2 className="text-xl font-bold text-on-surface mb-2">
-                  Selesaikan Tugas?
-                </h2>
+                <h2 className="text-xl font-bold text-slate-900 mb-2">Selesaikan Tugas?</h2>
                 <p className="text-sm text-on-surface-variant mb-6">
                   Apakah kamu yakin tugas <span className="font-semibold text-primary">"{task.title}"</span> sudah benar-benar selesai? Tugas ini akan dipindahkan ke halaman Arsip.
                 </p>

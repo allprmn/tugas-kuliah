@@ -48,17 +48,17 @@ export default function DashboardPage() {
 
     const executeCompleteTask = async () => {
         if (!taskToComplete) return;
-        
+
         setIsCompleting(true);
         const { error } = await supabase
             .from('tasks')
             .update({ is_completed: true })
             .eq('id', taskToComplete.id);
-            
+
         setIsCompleting(false);
 
         if (!error) {
-            setTaskToComplete(null); 
+            setTaskToComplete(null);
             fetchTasks();
         } else {
             alert('Gagal menyelesaikan tugas');
@@ -81,13 +81,13 @@ export default function DashboardPage() {
 
     const executeDeleteTask = async () => {
         if (!taskToDelete) return;
-        
+
         setIsDeleting(true);
         const { error } = await supabase
             .from('tasks')
             .delete()
             .eq('id', taskToDelete.id);
-            
+
         setIsDeleting(false);
 
         if (!error) {
@@ -128,17 +128,25 @@ export default function DashboardPage() {
                     setSearchQuery={setSearchQuery}
                 />
 
-                <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
+                <main className="relative w-full pt-24 bg-background min-h-screen px-gutter animate-page-transition">
                     <div className="flex flex-col w-full pb-space-xl pt-6">
 
-                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
-                            <div>
-                                <h1 className="text-3xl font-bold text-on-surface tracking-tight">Daftar Tugas Aktif</h1>
-                                <p className="text-on-surface-variant mt-1">Selesaikan tugasmu sebelum tenggat waktu tiba.</p>
+                        <div className="bg-white/60 backdrop-blur-2xl backdrop-saturate-150 border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-3xl p-6 md:p-8 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all duration-300 relative overflow-hidden group">
+
+                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-400/30 transition-colors"></div>
+
+                            <div className="relative z-10">
+                                <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+                                    Daftar Tugas Aktif
+                                </h1>
+                                <p className="text-sm md:text-base text-slate-500 mt-2">
+                                    Selesaikan tugasmu sebelum tenggat waktu tiba.
+                                </p>
                             </div>
+
                             <button
                                 onClick={handleOpenAdd}
-                                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-on-primary font-semibold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all"
+                                className="relative z-10 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold shadow-lg shadow-blue-500/30 hover:bg-blue-700 hover:-translate-y-0.5 active:translate-y-0 transition-all shrink-0"
                             >
                                 <span className="material-symbols-outlined text-[20px]">add_task</span>
                                 Tambah Tugas
@@ -167,18 +175,25 @@ export default function DashboardPage() {
                                     const remaining = getDaysRemaining(task.deadline);
 
                                     return (
-                                    <SpotlightCard 
-                                        key={task.id} className="relative flex flex-col justify-between p-6 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all duration-300 border border-outline-variant/10 shadow-sm group">
-                                            <div>
+                                        <SpotlightCard
+                                            key={task.id}
+                                            className="relative flex flex-col justify-between p-6 rounded-2xl bg-white/70 backdrop-blur-md hover:bg-white/90 border border-white/50 shadow-sm hover:shadow-lg transition-all duration-300 group"
+                                            theme="light"
+                                            spotlightColor="rgba(125, 211, 252, 0.5)"
+                                            intensity={0.5}
+                                            borderGlow={0.6}
+                                            flare
+                                        >
+                                            <div className="relative z-10">
                                                 <div className="flex items-start justify-between mb-4">
                                                     <div className="flex gap-2">
-                                                        <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${task.priority === 'Tinggi' ? 'bg-error-container/30 text-error' :
-                                                            task.priority === 'Sedang' ? 'bg-secondary-container/20 text-secondary' :
-                                                                'bg-surface-container-high text-outline'
+                                                        <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${task.priority === 'Tinggi' ? 'bg-red-100 text-red-600' :
+                                                            task.priority === 'Sedang' ? 'bg-blue-100 text-blue-600' :
+                                                                'bg-slate-100 text-slate-600'
                                                             }`}>
                                                             {task.priority}
                                                         </span>
-                                                        <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-surface-container-high text-on-surface">
+                                                        <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700">
                                                             {task.course_code}
                                                         </span>
                                                     </div>
@@ -186,41 +201,43 @@ export default function DashboardPage() {
                                                         {/* Tombol Edit */}
                                                         <button
                                                             onClick={() => handleOpenEdit(task)}
-                                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-surface-container-high hover:text-primary transition-colors"
+                                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-blue-600 transition-colors"
                                                         >
                                                             <span className="material-symbols-outlined text-[18px]">edit</span>
                                                         </button>
 
-                                                        {/* Tombol Hapus (BARU) */}
+                                                        {/* Tombol Hapus */}
+                                                        
                                                         <button
                                                             onClick={() => openDeleteModal(task)}
-                                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:bg-error-container/20 hover:text-error transition-colors"
+                                                            className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
                                                         >
                                                             <span className="material-symbols-outlined text-[18px]">delete</span>
                                                         </button>
                                                     </div>
                                                 </div>
 
-                                                <h3 className="text-xl font-bold text-on-surface leading-tight mb-1">{task.title}</h3>
-                                                <p className="text-sm text-on-surface-variant mb-4">{task.course}</p>
+                                                <h3 className="text-xl font-bold text-slate-900 leading-tight mb-1">{task.title}</h3>
+                                                <p className="text-sm text-slate-500 mb-4">{task.course}</p>
 
                                                 {task.description && (
-                                                    <p className="text-sm text-outline line-clamp-2 mb-4">{task.description}</p>
+                                                    <p className="text-sm text-slate-400 line-clamp-2 mb-4">{task.description}</p>
                                                 )}
                                             </div>
 
-                                            <div className="mt-4 pt-4 border-t border-outline-variant/20 flex items-center justify-between">
+                                        
+                                            <div className="relative z-10 mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
                                                 <div className="flex flex-col">
-                                                    <span className="text-xs text-outline">Tenggat</span>
+                                                    <span className="text-xs text-slate-400">Tenggat</span>
                                                     <div className="flex items-center gap-1.5 mt-0.5">
-                                                        <span className="material-symbols-outlined text-[16px] text-outline">event</span>
+                                                        <span className="material-symbols-outlined text-[16px] text-slate-400">event</span>
                                                         <span className={`text-sm font-bold ${remaining.color}`}>{remaining.text}</span>
                                                     </div>
                                                 </div>
 
                                                 <button
                                                     onClick={() => openCompleteModal(task)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container/10 text-primary hover:bg-primary hover:text-on-primary font-semibold text-sm transition-all"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-semibold text-sm transition-all"
                                                 >
                                                     <span className="material-symbols-outlined text-[18px]">check_circle</span>
                                                     Selesai

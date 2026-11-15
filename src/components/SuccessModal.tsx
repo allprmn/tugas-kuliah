@@ -34,7 +34,7 @@ export default function SuccessModal({
           >
             <SpotlightCard 
               className="w-full rounded-2xl bg-surface-container-low shadow-2xl p-6 border border-tertiary/20"
-              theme="dark"
+              theme="light"
               spotlightColor="#4edea3" // Warna hijau (tertiary)
               intensity={0.2}
               flare

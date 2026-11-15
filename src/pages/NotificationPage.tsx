@@ -144,7 +144,8 @@ export default function NotificationPage() {
                     console.log("Notif diklik:", (item as any).originalData);
                   }}
                   animation="slide"
-                  theme="dark"
+                  theme="light"
+                  accentColor="#2563eb"
                   width="100%"
                   maxHeight={500}
                   radius={14}

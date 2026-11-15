@@ -31,7 +31,7 @@ export default function ConfirmDeleteModal({ isOpen, onClose, onConfirm, task, i
           >
             <SpotlightCard 
               className="w-full rounded-2xl bg-surface-container-low shadow-2xl p-6 border border-error/30"
-              theme="dark"
+              theme="light"
               spotlightColor="#ef4444" // Warna merah untuk hapus
               intensity={0.2}
               flare
@@ -41,9 +41,7 @@ export default function ConfirmDeleteModal({ isOpen, onClose, onConfirm, task, i
                   <span className="material-symbols-outlined text-[32px]">delete_forever</span>
                 </div>
 
-                <h2 className="text-xl font-bold text-on-surface mb-2">
-                  Hapus Tugas Permanen?
-                </h2>
+                <h2 className="text-xl font-bold text-slate-900 mb-2">Hapus Tugas Permanen?</h2>
                 <p className="text-sm text-on-surface-variant mb-6">
                   Tugas <span className="font-semibold text-error">"{task.title}"</span> akan dihapus dari database dan tidak dapat dikembalikan.
                 </p>

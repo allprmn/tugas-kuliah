@@ -1,4 +1,3 @@
-/** @type {import('tailwindcss').Config} */
 export default {
   darkMode: "class",
   content: [
@@ -8,23 +7,47 @@ export default {
   theme: {
     extend: {
       colors: {
-        "on-secondary-fixed-variant": "#004b73", "primary": "#b4c5ff", "on-surface": "#dae2fd",
-        "on-error": "#690005", "tertiary-container": "#007d55", "on-secondary": "#003351",
-        "on-secondary-container": "#002c47", "on-tertiary-fixed": "#002113", "secondary-fixed": "#cce5ff",
-        "surface-container-lowest": "#060e20", "surface-container-highest": "#2d3449",
-        "on-tertiary-fixed-variant": "#005236", "primary-fixed-dim": "#b4c5ff",
-        "on-tertiary-container": "#bdffdb", "error": "#ffb4ab", "surface-bright": "#31394d",
-        "tertiary-fixed": "#6ffbbe", "secondary-fixed-dim": "#93ccff", "surface": "#0b1326",
-        "primary-fixed": "#dbe1ff", "background": "#0b1326", "on-surface-variant": "#c3c6d7",
-        "tertiary": "#4edea3", "inverse-on-surface": "#283044", "primary-container": "#2563eb",
-        "outline": "#8d90a0", "inverse-primary": "#0053db", "outline-variant": "#434655",
-        "on-primary-container": "#eeefff", "surface-variant": "#2d3449", "on-primary-fixed": "#00174b",
-        "on-error-container": "#ffdad6", "secondary-container": "#3198dc", "secondary": "#93ccff",
-        "inverse-surface": "#dae2fd", "surface-container-high": "#222a3d", "surface-dim": "#0b1326",
-        "surface-container": "#171f33", "error-container": "#93000a", "tertiary-fixed-dim": "#4edea3",
-        "surface-tint": "#b4c5ff", "on-background": "#dae2fd", "on-primary-fixed-variant": "#003ea8",
-        "on-secondary-fixed": "#001d31", "on-tertiary": "#003824", "surface-container-low": "#131b2e",
-        "on-primary": "#002a78"
+        // --- WARNA LIGHT MODE (ABU-PUTIH) ---
+        "background": "#f4f4f5",                // Latar belakang abu-abu terang
+        "on-background": "#18181b",             // Teks utama (hitam)
+        "surface": "#f4f4f5",                   
+        "on-surface": "#18181b",                // Teks di atas kartu
+        "on-surface-variant": "#71717a",        // Teks sekunder (abu)
+        
+        // Kartu & Container
+        "surface-container-lowest": "#ffffff",  // Putih bersih
+        "surface-container-low": "#ffffff",     // Latar kartu
+        "surface-container": "#e4e4e7",         // Latar elemen dalam kartu
+        "surface-container-high": "#d4d4d8",    // Hover state
+        "surface-container-highest": "#a1a1aa", // Border/Limit
+        
+        // Garis Luar
+        "outline": "#a1a1aa",
+        "outline-variant": "#e4e4e7",
+        
+        // Warna Utama (Primary) & Status
+        "primary": "#2563eb",                   // Biru utama
+        "on-primary": "#ffffff",                // Teks di atas biru
+        "primary-container": "#dbeafe",         // Biru sangat muda (badge/latar)
+        "on-primary-container": "#1e40af",      // Biru gelap (teks badge)
+        
+        "secondary": "#0284c7",
+        "on-secondary": "#ffffff",
+        "secondary-container": "#e0f2fe",
+        "on-secondary-container": "#0c4a6e",
+        
+        "tertiary": "#059669",
+        "on-tertiary": "#ffffff",
+        "tertiary-container": "#d1fae5",
+        "on-tertiary-container": "#065f46",
+        
+        "error": "#dc2626",
+        "on-error": "#ffffff",
+        "error-container": "#fee2e2",
+        "on-error-container": "#991b1b",
+        
+        // Sisanya dibiarkan sama (karena menggunakan varian warna di atas)
+        "on-secondary-fixed-variant": "#004b73", "on-error": "#690005", "tertiary-container": "#007d55", "on-secondary": "#003351", "on-secondary-container": "#002c47", "on-tertiary-fixed": "#002113", "secondary-fixed": "#cce5ff", "on-tertiary-fixed-variant": "#005236", "primary-fixed-dim": "#b4c5ff", "on-tertiary-container": "#bdffdb", "surface-bright": "#ffffff", "tertiary-fixed": "#6ffbbe", "secondary-fixed-dim": "#93ccff", "primary-fixed": "#dbe1ff", "inverse-on-surface": "#283044", "inverse-primary": "#0053db", "surface-variant": "#e4e4e7", "on-primary-fixed": "#00174b", "inverse-surface": "#18181b", "surface-dim": "#e4e4e7", "tertiary-fixed-dim": "#4edea3", "surface-tint": "#b4c5ff", "on-primary-fixed-variant": "#003ea8", "on-secondary-fixed": "#001d31", "on-tertiary": "#003824"
       },
       borderRadius: {
         DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"

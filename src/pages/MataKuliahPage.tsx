@@ -106,12 +106,12 @@ export default function MataKuliahPage() {
 
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
         <Header
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
         />
 
-        <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
+        <main className="relative w-full pt-24 bg-background min-h-screen px-gutter animate-page-transition">
           <div className="flex flex-col w-full pb-space-xl pt-6 max-w-7xl mx-auto">
 
             <div className="flex justify-end mb-4">
@@ -132,7 +132,7 @@ export default function MataKuliahPage() {
                 </div>
                 <div>
                   <p className="text-xs text-outline uppercase tracking-wider font-semibold">Kuliah</p>
-                  <p className="text-2xl font-bold text-white">{totalKelas} <span className="text-sm font-normal text-outline">Kelas</span></p>
+                  <p className="text-2xl font-bold text-black">{totalKelas} <span className="text-sm font-normal text-outline">Kelas</span></p>
                 </div>
               </div>
               <div className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/10 flex items-center gap-4">
@@ -141,7 +141,7 @@ export default function MataKuliahPage() {
                 </div>
                 <div>
                   <p className="text-xs text-outline uppercase tracking-wider font-semibold">Beban SKS</p>
-                  <p className="text-2xl font-bold text-white">{totalSKS} <span className="text-sm font-normal text-outline">SKS</span></p>
+                  <p className="text-2xl font-bold text-black">{totalSKS} <span className="text-sm font-normal text-outline">SKS</span></p>
                 </div>
               </div>
               <div className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/10 flex items-center gap-4">
@@ -159,7 +159,7 @@ export default function MataKuliahPage() {
                 </div>
                 <div>
                   <p className="text-xs text-outline uppercase tracking-wider font-semibold">Dosen Pengampu</p>
-                  <p className="text-2xl font-bold text-white">{totalDosen}</p>
+                  <p className="text-2xl font-bold text-black">{totalDosen}</p>
                 </div>
               </div>
             </div>
@@ -170,19 +170,19 @@ export default function MataKuliahPage() {
               <div className="flex bg-surface-container-low p-1 rounded-xl border border-outline-variant/10 overflow-x-auto">
                 <button
                   onClick={() => setActiveTab('all')}
-                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-white'}`}
+                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-black'}`}
                 >
                   Semua ({courses.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('has_tasks')}
-                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'has_tasks' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-white'}`}
+                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'has_tasks' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-black'}`}
                 >
                   Ada Tugas ({courses.filter(c => c.hasTasks).length})
                 </button>
                 <button
                   onClick={() => setActiveTab('no_tasks')}
-                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'no_tasks' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-white'}`}
+                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${activeTab === 'no_tasks' ? 'bg-blue-600 text-white' : 'text-on-surface-variant hover:text-black'}`}
                 >
                   Tidak Ada Tugas ({courses.filter(c => !c.hasTasks).length})
                 </button>
@@ -210,7 +210,11 @@ export default function MataKuliahPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCourses.map((course) => (
                   <SpotlightCard
-                  key={course.id} className="relative bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm hover:border-primary/30 transition-all group flex flex-col h-full">
+                    key={course.id} className="relative bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm hover:border-primary/30 transition-all group flex flex-col h-full"
+                    theme="light"
+                    spotlightColor="#bae6fd"
+                    intensity={0.15}
+                    flare>
 
                     <button
                       onClick={() => handleDelete(course.id)}
@@ -228,11 +232,11 @@ export default function MataKuliahPage() {
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold text-white mb-2 leading-tight">
+                    <h3 className="text-xl font-bold text-black mb-2 leading-tight">
                       {course.name}
                     </h3>
-                    <p className="text-sm text-on-surface-variant mb-1">Kode: {course.code}</p>
-                    <p className="text-sm text-on-surface-variant mb-4">Kelas: {course.class_name}</p>
+                    <p className="text-sm text-slate-700 mb-1">Kode: {course.code}</p>
+                    <p className="text-sm text-slate-700 mb-4">Kelas: {course.class_name}</p>
 
                     <div className="flex items-center gap-2 text-sm text-on-surface-variant">
                       <span className="material-symbols-outlined text-[18px]">person</span>
@@ -242,7 +246,7 @@ export default function MataKuliahPage() {
                     {/* Progress Bar Dinamis */}
                     <div className="mt-auto pt-8">
                       <div className="flex items-end justify-between mb-3">
-                        <span className="text-3xl font-bold text-white block">
+                        <span className="text-3xl font-bold text-black block">
                           {course.calculatedProgress}%
                         </span>
                         <span className="text-xs text-outline mb-1">
@@ -259,7 +263,7 @@ export default function MataKuliahPage() {
                       </div>
                     </div>
 
-                   </SpotlightCard>
+                  </SpotlightCard>
                 ))}
               </div>
             )}

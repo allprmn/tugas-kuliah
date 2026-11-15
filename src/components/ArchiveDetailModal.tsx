@@ -33,7 +33,7 @@ export default function ArchiveDetailModal({ isOpen, onClose, task, onDelete }: 
             {/* 3. SPOTLIGHT CARD */}
             <SpotlightCard
               className="w-full rounded-2xl bg-surface-container-low shadow-2xl p-6 border border-outline-variant/20"
-              theme="dark"
+              theme="light"
               spotlightColor="#b4c5ff"
               intensity={0.15}
               flare

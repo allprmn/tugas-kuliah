@@ -52,7 +52,7 @@ export default function ProfilePage() {
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
         />
         
-        <main className="relative w-full pt-24 bg-background min-h-screen px-gutter flex justify-center items-center">
+        <main className="relative w-full pt-24 bg-background min-h-screen px-gutter flex justify-center items-center animate-page-transition">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -60,8 +60,8 @@ export default function ProfilePage() {
           >
             <SpotlightCard 
               className="w-full rounded-3xl bg-surface-container-low shadow-2xl p-8 border border-outline-variant/20"
-              theme="dark"
-              spotlightColor="#b4c5ff"
+              theme="light"
+              spotlightColor="#bae6fd"
               intensity={0.15}
               flare
             >

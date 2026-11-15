@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import AnimatedList from '../components/ui/AnimatedList';
@@ -59,8 +59,8 @@ export default function ArsipPage() {
       alert('Gagal menghapus tugas: ' + error.message);
     } else {
       setTaskToDelete(null);
-      setSelectedTask(null); 
-      window.location.reload(); 
+      setSelectedTask(null);
+      window.location.reload();
     }
   };
 
@@ -68,7 +68,7 @@ export default function ArsipPage() {
     title: task.title,
     description: `${task.course} (${task.course_code})`,
     meta: task.deadline,
-    
+
     originalData: task
   }));
 
@@ -79,18 +79,25 @@ export default function ArsipPage() {
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'pl-0 md:pl-[112px]' : 'pl-0'}`}>
 
         <Header
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
         />
 
-        <main className="relative w-full pt-24 bg-background min-h-screen px-gutter">
+        <main className="relative w-full pt-24 bg-background min-h-screen px-gutter animate-page-transition">
           <div className="flex flex-col w-full pb-space-xl pt-6 max-w-6xl mx-auto">
 
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
-              <div>
-                <h1 className="text-3xl font-bold text-on-surface tracking-tight">Arsip Tugas Selesai</h1>
-                <p className="text-on-surface-variant mt-1 text-sm">Daftar seluruh tugas kuliah yang telah kamu tuntaskan.</p>
+            <div className="bg-white/60 backdrop-blur-2xl backdrop-saturate-150 border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)] rounded-3xl p-6 md:p-8 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all duration-300 relative overflow-hidden group">
+
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-400/30 transition-colors"></div>
+
+              <div className="relative z-10">
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+                  Arsip Tugas Selesai
+                </h1>
+                <p className="text-sm md:text-base text-slate-500 mt-2">
+                  Daftar seluruh tugas kuliah yang telah kamu tuntaskan.
+                </p>
               </div>
             </div>
 
@@ -123,7 +130,8 @@ export default function ArsipPage() {
                   }
                   }
                   animation="pop"
-                  theme="dark"
+                  theme="light"
+                  accentColor="#2563eb"
                   width="100%"
                   maxHeight={600}
                   radius={14}
@@ -145,10 +153,10 @@ export default function ArsipPage() {
           </div>
         </main>
       </div>
-      <ArchiveDetailModal 
-        isOpen={!!selectedTask} 
-        onClose={() => setSelectedTask(null)} 
-        task={selectedTask} 
+      <ArchiveDetailModal
+        isOpen={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        task={selectedTask}
         onDelete={() => setTaskToDelete(selectedTask)}
       />
 
