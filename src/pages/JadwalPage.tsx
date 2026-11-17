@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import LatticeLoader from '../components/ui/LatticeLoader';
-import SpotlightCard from '../components/ui/SpotlightCard';
 import { supabase } from '../lib/supabaseClient';
 import type { Task } from '../types';
 
@@ -216,11 +215,7 @@ export default function JadwalPage() {
 
               {/* PANEL KANAN (AGENDA & KETERANGAN) */}
               <div className="xl:col-span-4 flex flex-col gap-4">
-                <SpotlightCard
-                  className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm overflow-hidden"
-                  theme="light"
-                  spotlightColor="rgba(125, 211, 252, 0.4)"
-                  intensity={0.3}>
+                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm overflow-hidden">
                   <div className="flex items-center justify-between mb-4 relative z-10">
                     <h2 className="text-lg font-bold text-slate-900">
                       {selectedDate ? new Date(selectedDate).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Pilih Tanggal'}
@@ -255,19 +250,15 @@ export default function JadwalPage() {
                       ))}
                     </div>
                   )}
-                </SpotlightCard>
+                </div>
 
-                <SpotlightCard 
-                  className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm"
-                  theme="light"
-                  spotlightColor="rgba(125, 211, 252, 0.4)"
-                  intensity={0.3}>
+                <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm">
                   <h3 className="font-semibold text-slate-900 mb-3 text-sm relative z-10">Keterangan</h3>
                   <div className="flex flex-col gap-2 text-xs text-slate-600 relative z-10">
                     <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> Deadline Aktif</div>
                     <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span> Selesai / Terlewat</div>
                   </div>
-                </SpotlightCard>
+                </div>
               </div>
 
             </div>

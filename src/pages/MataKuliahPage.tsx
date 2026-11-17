@@ -3,7 +3,6 @@ import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
 import CourseModal from '../components/CourseModal';
 import LatticeLoader from '../components/ui/LatticeLoader';
-import SpotlightCard from '../components/ui/SpotlightCard';
 import { supabase } from '../lib/supabaseClient';
 import type { Course } from '../types';
 
@@ -125,41 +124,41 @@ export default function MataKuliahPage() {
             </div>
 
             {/* 1. BAGIAN STATISTIK */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/10 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
-                  <span className="material-symbols-outlined">menu_book</span>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
+              <div className="bg-surface-container-low rounded-xl p-3 sm:p-5 border border-outline-variant/10 flex items-center gap-2.5 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                  <span className="material-symbols-outlined text-[18px] sm:text-[24px]">menu_book</span>
                 </div>
-                <div>
-                  <p className="text-xs text-outline uppercase tracking-wider font-semibold">Kuliah</p>
-                  <p className="text-2xl font-bold text-black">{totalKelas} <span className="text-sm font-normal text-outline">Kelas</span></p>
-                </div>
-              </div>
-              <div className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/10 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-                  <span className="material-symbols-outlined">credit_card</span>
-                </div>
-                <div>
-                  <p className="text-xs text-outline uppercase tracking-wider font-semibold">Beban SKS</p>
-                  <p className="text-2xl font-bold text-black">{totalSKS} <span className="text-sm font-normal text-outline">SKS</span></p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-xs text-outline uppercase tracking-wider font-semibold truncate">Kuliah</p>
+                  <p className="text-lg sm:text-2xl font-bold text-black">{totalKelas} <span className="text-xs sm:text-sm font-normal text-outline">Kelas</span></p>
                 </div>
               </div>
-              <div className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/10 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                  <span className="material-symbols-outlined">task_alt</span>
+              <div className="bg-surface-container-low rounded-xl p-3 sm:p-5 border border-outline-variant/10 flex items-center gap-2.5 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 shrink-0">
+                  <span className="material-symbols-outlined text-[18px] sm:text-[24px]">credit_card</span>
                 </div>
-                <div>
-                  <p className="text-xs text-outline uppercase tracking-wider font-semibold">Selesai</p>
-                  <p className="text-2xl font-bold text-emerald-400">{rataRataProgress}%</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-xs text-outline uppercase tracking-wider font-semibold truncate">Beban SKS</p>
+                  <p className="text-lg sm:text-2xl font-bold text-black">{totalSKS} <span className="text-xs sm:text-sm font-normal text-outline">SKS</span></p>
                 </div>
               </div>
-              <div className="bg-surface-container-low rounded-xl p-5 border border-outline-variant/10 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface">
-                  <span className="material-symbols-outlined">record_voice_over</span>
+              <div className="bg-surface-container-low rounded-xl p-3 sm:p-5 border border-outline-variant/10 flex items-center gap-2.5 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                  <span className="material-symbols-outlined text-[18px] sm:text-[24px]">task_alt</span>
                 </div>
-                <div>
-                  <p className="text-xs text-outline uppercase tracking-wider font-semibold">Dosen Pengampu</p>
-                  <p className="text-2xl font-bold text-black">{totalDosen}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-xs text-outline uppercase tracking-wider font-semibold truncate">Selesai</p>
+                  <p className="text-lg sm:text-2xl font-bold text-emerald-400">{rataRataProgress}%</p>
+                </div>
+              </div>
+              <div className="bg-surface-container-low rounded-xl p-3 sm:p-5 border border-outline-variant/10 flex items-center gap-2.5 sm:gap-4">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface shrink-0">
+                  <span className="material-symbols-outlined text-[18px] sm:text-[24px]">record_voice_over</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-xs text-outline uppercase tracking-wider font-semibold truncate">Dosen Pengampu</p>
+                  <p className="text-lg sm:text-2xl font-bold text-black">{totalDosen}</p>
                 </div>
               </div>
             </div>
@@ -207,55 +206,53 @@ export default function MataKuliahPage() {
                 <p className="text-on-surface-variant text-sm mt-1">Coba ubah kata kunci atau filter.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 {filteredCourses.map((course) => (
-                  <SpotlightCard
-                    key={course.id} className="relative bg-surface-container-low rounded-2xl p-6 border border-outline-variant/10 shadow-sm hover:border-primary/30 transition-all group flex flex-col h-full"
-                    theme="light"
-                    spotlightColor="#bae6fd"
-                    intensity={0.15}
-                    flare>
+                  <div
+                    key={course.id}
+                    className="relative bg-surface-container-low rounded-2xl p-3.5 sm:p-6 border border-outline-variant/10 shadow-sm hover:border-primary/30 transition-all group flex flex-col h-full"
+                  >
 
                     <button
                       onClick={() => handleDelete(course.id)}
-                      className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-outline opacity-0 group-hover:opacity-100 hover:bg-error/10 hover:text-error transition-all z-10"
+                      className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-outline opacity-0 group-hover:opacity-100 hover:bg-error/10 hover:text-error transition-all z-10"
                     >
-                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                      <span className="material-symbols-outlined text-[16px] sm:text-[18px]">delete</span>
                     </button>
 
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2.5 sm:mb-4">
+                      <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
                         Teknik Informatika
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Semester 5
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold text-black mb-2 leading-tight">
+                    <h3 className="text-sm sm:text-xl font-bold text-black mb-1 sm:mb-2 leading-snug sm:leading-tight line-clamp-2">
                       {course.name}
                     </h3>
-                    <p className="text-sm text-slate-700 mb-1">Kode: {course.code}</p>
-                    <p className="text-sm text-slate-700 mb-4">Kelas: {course.class_name}</p>
+                    <p className="text-xs sm:text-sm text-slate-700 mb-0.5 sm:mb-1 truncate">Kode: {course.code}</p>
+                    <p className="text-xs sm:text-sm text-slate-700 mb-2.5 sm:mb-4 truncate">Kelas: {course.class_name}</p>
 
-                    <div className="flex items-center gap-2 text-sm text-on-surface-variant">
-                      <span className="material-symbols-outlined text-[18px]">person</span>
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-on-surface-variant">
+                      <span className="material-symbols-outlined text-[15px] sm:text-[18px] shrink-0">person</span>
                       <span className="truncate">{course.lecturer}</span>
                     </div>
 
                     {/* Progress Bar Dinamis */}
-                    <div className="mt-auto pt-8">
-                      <div className="flex items-end justify-between mb-3">
-                        <span className="text-3xl font-bold text-black block">
+                    <div className="mt-auto pt-4 sm:pt-8">
+                      <div className="flex items-end justify-between mb-2 sm:mb-3">
+                        <span className="text-xl sm:text-3xl font-bold text-black block">
                           {course.calculatedProgress}%
                         </span>
-                        <span className="text-xs text-outline mb-1">
+                        <span className="text-[10px] sm:text-xs text-outline mb-0.5 sm:mb-1">
                           {course.hasTasks
                             ? `${course.completedTasks}/${course.totalTasks} Tugas`
                             : 'Belum ada tugas'}
                         </span>
                       </div>
-                      <div className="w-full bg-surface-container-highest h-2.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-surface-container-highest h-1.5 sm:h-2.5 rounded-full overflow-hidden">
                         <div
                           className="bg-emerald-400 h-full rounded-full transition-all duration-500"
                           style={{ width: `${course.calculatedProgress}%` }}
@@ -263,7 +260,7 @@ export default function MataKuliahPage() {
                       </div>
                     </div>
 
-                  </SpotlightCard>
+                  </div>
                 ))}
               </div>
             )}
